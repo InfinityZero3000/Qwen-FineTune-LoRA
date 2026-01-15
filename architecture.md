@@ -173,43 +173,43 @@
 │  │                                                            │  │
 │  │  Parallel Tasks (async):                                   │  │
 │  │  • HuBERT → Pronunciation analysis (if voice input)        │  │
-│  │  • Cache lookup → Check for similar responses             │  │
-│  │  • Redis update → Save learner progress                   │  │
+│  │  • Cache lookup → Check for similar responses              │  │
+│  │  • Redis update → Save learner progress                    │  │
 │  │                                                            │  │
 │  │  Conditional Tasks:                                        │  │
 │  │  • IF confidence < 0.8 OR level == "A2":                   │  │
-│  │    → Load LLaMA3-VI for Vietnamese explanation            │  │
+│  │    → Load LLaMA3-VI for Vietnamese explanation             │  │
 │  │                                                            │  │
 │  │  Execution Flow:                                           │  │
-│  │  ┌─────────────┐                                          │  │
-│  │  │   Start     │                                          │  │
-│  │  └──────┬──────┘                                          │  │
+│  │  ┌─────────────┐                                           │  │
+│  │  │   Start     │                                           │  │
+│  │  └──────┬──────┘                                           │  │
 │  │         ▼                                                  │  │
-│  │  ┌─────────────┐     ┌─────────────┐                      │  │
-│  │  │ Qwen        │────▶│  HuBERT     │ (parallel)           │  │
-│  │  │ Analysis    │     │ Phonemes    │                      │  │
-│  │  └──────┬──────┘     └──────┬──────┘                      │  │
+│  │  ┌─────────────┐     ┌─────────────┐                       │  │
+│  │  │ Qwen        │────▶│  HuBERT     │ (parallel)            │  │
+│  │  │ Analysis    │     │ Phonemes    │                       │  │
+│  │  └──────┬──────┘     └──────┬──────┘                       │  │
 │  │         ▼                   ▼                              │  │
-│  │  ┌─────────────────────────────┐                          │  │
-│  │  │   Wait for all tasks        │                          │  │
-│  │  └──────────┬──────────────────┘                          │  │
+│  │  ┌─────────────────────────────┐                           │  │
+│  │  │   Wait for all tasks        │                           │  │
+│  │  └──────────┬──────────────────┘                           │  │
 │  │             ▼                                              │  │
-│  │  ┌──────────────────┐                                     │  │
-│  │  │ IF need VI?      │                                     │  │
-│  │  └────┬─────────┬───┘                                     │  │
-│  │       Yes       No                                        │  │
-│  │       ▼         ▼                                         │  │
-│  │  ┌─────────┐  Skip                                        │  │
-│  │  │ LLaMA3  │                                              │  │
-│  │  └────┬────┘                                              │  │
-│  │       ▼                                                   │  │
-│  │  ┌──────────────────┐                                     │  │
-│  │  │ Fusion & Aggr.   │                                     │  │
-│  │  └────┬─────────────┘                                     │  │
-│  │       ▼                                                   │  │
-│  │  ┌──────────────────┐                                     │  │
-│  │  │   Response       │                                     │  │
-│  │  └──────────────────┘                                     │  │
+│  │  ┌──────────────────┐                                      │  │
+│  │  │ IF need VI?      │                                      │  │
+│  │  └────┬─────────┬───┘                                      │  │
+│  │       Yes       No                                         │  │
+│  │       ▼         ▼                                          │  │
+│  │  ┌─────────┐  Skip                                         │  │
+│  │  │ LLaMA3  │                                               │  │
+│  │  └────┬────┘                                               │  │
+│  │       ▼                                                    │  │
+│  │  ┌──────────────────┐                                      │  │
+│  │  │ Fusion & Aggr.   │                                      │  │
+│  │  └────┬─────────────┘                                      │  │
+│  │       ▼                                                    │  │
+│  │  ┌──────────────────┐                                      │  │
+│  │  │   Response       │                                      │  │
+│  │  └──────────────────┘                                      │  │
 │  └────────────────────────────────────────────────────────────┘  │
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────────┐  │
@@ -218,9 +218,9 @@
 │  │  Try-Catch Hierarchy:                                      │  │
 │  │                                                            │  │
 │  │  Level 1: Component Failure                                │  │
-│  │  • If Qwen fails → Use cached response or rule-based      │  │
-│  │  • If HuBERT fails → Skip pronunciation, continue         │  │
-│  │  • If LLaMA3-VI fails → Use English only                  │  │
+│  │  • If Qwen fails → Use cached response or rule-based       │  │
+│  │  • If HuBERT fails → Skip pronunciation, continue          │  │
+│  │  • If LLaMA3-VI fails → Use English only                   │  │
 │  │                                                            │  │
 │  │  Level 2: Timeout Management                               │  │
 │  │  • Task timeout: 500ms per component                       │  │
@@ -228,8 +228,8 @@
 │  │  • If timeout → Return partial results                     │  │
 │  │                                                            │  │
 │  │  Level 3: Resource Exhaustion                              │  │
-│  │  • GPU OOM → Offload to CPU, reduce batch size            │  │
-│  │  • CPU overload → Queue request, return cached            │  │
+│  │  • GPU OOM → Offload to CPU, reduce batch size             │  │
+│  │  • CPU overload → Queue request, return cached             │  │
 │  │                                                            │  │
 │  │  Graceful Degradation:                                     │  │
 │  │  Full → Basic → Minimal                                    │  │
@@ -245,7 +245,7 @@
 │  │  • session_id: Unique per conversation                     │  │
 │  │  • turn_count: Number of exchanges                         │  │
 │  │  • topic_context: Current discussion topic                 │  │
-│  │  • error_history: Recent mistakes for tracking            │  │
+│  │  • error_history: Recent mistakes for tracking             │  │
 │  │                                                            │  │
 │  │  Model State:                                              │  │
 │  │  • loaded_models: ["qwen", "hubert"]                       │  │
@@ -258,7 +258,7 @@
 │  └────────────────────────────────────────────────────────────┘  │
 │                                                                  │
 │  Monitoring & Logging:                                           │
-│  • Latency per component (STT: 80ms, Qwen: 120ms...)            │
+│  • Latency per component (STT: 80ms, Qwen: 120ms...)             │
 │  • Resource usage (GPU: 45%, RAM: 4.2GB)                         │
 │  • Error rates by component                                      │
 │  • Cache hit rates                                               │
