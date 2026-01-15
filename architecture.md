@@ -47,6 +47,7 @@
 | Pronunciation | HuBERT-large | 960MB | 100-200ms |
 | TTS | Piper VITS | 30-60MB | 100-300ms |
 | Cache | Redis | - | <5ms |
+| **Logging DB** | **MongoDB** | **-** | **<10ms** |
 
 ---
 
@@ -111,6 +112,19 @@
 │  │  • Nodes: Vocab (Word), Grammar (Rule), Topic (Concept)    │  │
 │  │  • Edges: "is_a", "related_to", "prerequisite_of"          │  │
 │  │  • Purpose: Structured RAG & Curriculum guiding            │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  MongoDB: AI Learning Logs (Persistent Storage)            │  │
+│  │  • Collections:                                            │  │
+│  │    - ai_interactions: Full interaction logs + feedback     │  │
+│  │    - model_metrics: Performance tracking over time         │  │
+│  │    - learning_patterns: Aggregated user error patterns     │  │
+│  │    - training_queue: Curated examples for LoRA tuning      │  │
+│  │  • Environment:                                            │  │
+│  │    - Dev: Docker local (mongodb://localhost:27017)         │  │
+│  │    - Prod: Atlas FREE (mongodb+srv://...)                  │  │
+│  │  • Auto-cleanup: TTL indexes (90 days retention)           │  │
 │  └────────────────────────────────────────────────────────────┘  │
 │                                                                  │
 └──────────────────────────────────────────────────────────────────┘
