@@ -1,0 +1,1377 @@
+\documentclass[12pt,a4paper]{article}
+
+% ===== PACKAGES =====
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{fontawesome5}
+
+% TikZ Libraries
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, shadows, decorations.pathmorphing}
+
+% Circular image command
+\newcommand{\circleimage}[2]{%
+    \begin{tikzpicture}
+        \clip (0,0) circle (#1);
+        \node at (0,0) {\includegraphics[width=#1*2]{#2}};
+    \end{tikzpicture}%
+}
+
+% ===== PAGE SETUP =====
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{LexiLingo}}
+\fancyhead[R]{Mô Tả Kiến Trúc Phần Mềm}
+\fancyfoot[C]{\thepage}
+
+% ===== COLORS =====
+\definecolor{primaryblue}{RGB}{66, 133, 244}
+\definecolor{secondarygreen}{RGB}{52, 168, 83}
+\definecolor{accentorange}{RGB}{251, 188, 4}
+\definecolor{alertred}{RGB}{234, 67, 53}
+\definecolor{darkgray}{RGB}{95, 99, 104}
+\definecolor{lightgray}{RGB}{241, 243, 244}
+\definecolor{codebg}{RGB}{248, 249, 250}
+
+% ===== TITLE FORMATTING =====
+\titleformat{\section}{\Large\bfseries\color{primaryblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{darkgray}}{\thesubsection}{1em}{}
+
+% ===== CUSTOM BOXES =====
+\newtcolorbox{infobox}[1][]{
+    colback=lightgray,
+    colframe=primaryblue,
+    fonttitle=\bfseries,
+    title=#1,
+    rounded corners
+}
+
+\newtcolorbox{featurebox}{
+    colback=white,
+    colframe=secondarygreen,
+    rounded corners,
+    boxrule=1pt
+}
+
+% ===== DOCUMENT =====
+\begin{document}
+
+% ===== TITLE PAGE =====
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries\color{primaryblue} LexiLingo}\\[0.5cm]
+    {\Large\color{darkgray} AI-Powered English Learning Application}\\[2cm]
+    
+    % Logo (already circular with transparent background)
+    \includegraphics[width=5cm]{logo.png}\\[1cm]
+    
+    {\LARGE\bfseries MÔ TẢ KIẾN TRÚC}\\[0.5cm]
+    {\large Mobile Application Architecture}\\[2cm]
+    
+    \begin{tabular}{ll}
+        \textbf{Phiên bản:} & v1.2.7 \\
+        \textbf{Ngày:} & 14/01/2026 \\
+        \textbf{Nền tảng:} & Flutter (iOS/Android/Web) \\
+        \textbf{Trạng thái:} & Development \\
+    \end{tabular}
+    
+    \vfill
+    {\large\color{darkgray} Nguyen Huu Thang - Lead Developer}\\
+    {\large\color{darkgray} Email:nhthang312@gmail.com}
+\end{titlepage}
+
+% ===== TABLE OF CONTENTS =====
+\tableofcontents
+\newpage
+
+% ===== SECTION 1: TỔNG QUAN =====
+\section{Tổng Quan Dự Án}
+
+\subsection{Giới Thiệu}
+
+\textbf{LexiLingo} là ứng dụng học tiếng Anh thông minh sử dụng AI để hỗ trợ người học cải thiện kỹ năng ngôn ngữ một cách hiệu quả. Ứng dụng tập trung vào việc cung cấp trải nghiệm học tập cá nhân hóa thông qua:
+
+\begin{itemize}[leftmargin=2cm]
+    \item Hội thoại với AI Tutor
+    \item Học từ vựng theo ngữ cảnh
+    \item Kiểm tra ngữ pháp tự động
+    \item Luyện phát âm với phản hồi thời gian thực
+    \item Theo dõi tiến độ học tập
+\end{itemize}
+
+\subsection{Công Nghệ Sử Dụng}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Layer} & \textbf{Công Nghệ} & \textbf{Mục Đích} \\
+\hline
+Frontend & Flutter 3.29+ & Cross-platform UI \\
+State Management & Provider & Quản lý trạng thái \\
+Database & SQLite + Firestore & Local \& Cloud storage \\
+AI/ML & Qwen2.5 + Whisper + HuBERT & Language processing \\
+Authentication & Firebase Auth & Xác thực người dùng \\
+\hline
+\end{tabular}
+\caption{Stack công nghệ chính}
+\end{table}
+
+% ===== SECTION 2: KIẾN TRÚC TỔNG QUAN =====
+\section{Kiến Trúc Tổng Quan}
+
+\subsection{Clean Architecture}
+
+LexiLingo được xây dựng theo mô hình \textbf{Clean Architecture} kết hợp với \textbf{Feature-First Structure}, đảm bảo:
+
+\begin{itemize}
+    \item \textbf{Separation of Concerns}: Tách biệt rõ ràng các tầng logic
+    \item \textbf{Testability}: Dễ dàng viết unit test
+    \item \textbf{Maintainability}: Bảo trì và mở rộng thuận tiện
+    \item \textbf{Scalability}: Có thể scale khi cần thiết
+\end{itemize}
+
+\subsection{Sơ Đồ Kiến Trúc Tổng Quan}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    layer/.style={
+        rectangle,
+        rounded corners=5pt,
+        minimum width=12cm,
+        minimum height=1.5cm,
+        text centered,
+        font=\bfseries
+    },
+    arrow/.style={
+        -Stealth,
+        thick
+    }
+]
+
+% Layers
+\node[layer, fill=primaryblue!20, draw=primaryblue, line width=1.5pt] (presentation) 
+    {\color{primaryblue}\faDesktop\ PRESENTATION LAYER};
+
+\node[layer, fill=secondarygreen!20, draw=secondarygreen, line width=1.5pt, below=of presentation] (domain) 
+    {\color{secondarygreen}\faCogs\ DOMAIN LAYER};
+
+\node[layer, fill=accentorange!20, draw=accentorange, line width=1.5pt, below=of domain] (data) 
+    {\color{accentorange}\faDatabase\ DATA LAYER};
+
+\node[layer, fill=alertred!20, draw=alertred, line width=1.5pt, below=of data] (external) 
+    {\color{alertred}\faCloud\ EXTERNAL SERVICES};
+
+% Arrows
+\draw[arrow, primaryblue] (presentation) -- (domain);
+\draw[arrow, secondarygreen] (domain) -- (data);
+\draw[arrow, accentorange] (data) -- (external);
+
+% Labels on right
+\node[right=0.5cm of presentation, text=darkgray, font=\small] {Widgets, Providers, Screens};
+\node[right=0.5cm of domain, text=darkgray, font=\small] {Entities, UseCases, Repositories};
+\node[right=0.5cm of data, text=darkgray, font=\small] {DataSources, Models, Impl};
+\node[right=0.5cm of external, text=darkgray, font=\small] {Firebase, Qwen2.5, Whisper, SQLite};
+
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+% ===== SECTION 3: CHI TIẾT KIẾN TRÚC =====
+\section{Chi Tiết Kiến Trúc Các Layer}
+
+\subsection{Presentation Layer}
+
+Tầng này chịu trách nhiệm về giao diện người dùng và quản lý trạng thái UI.
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    box/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=3.5cm,
+        minimum height=1cm,
+        text centered,
+        draw=primaryblue,
+        fill=primaryblue!10,
+        font=\small
+    }
+]
+
+% Widgets
+\node[box] (screens) {Screens};
+\node[box, right=of screens] (widgets) {Widgets};
+\node[box, right=of widgets] (providers) {Providers};
+
+% Container
+\node[draw=primaryblue, dashed, rounded corners, fit=(screens)(widgets)(providers), 
+      inner sep=10pt, label={[font=\bfseries\color{primaryblue}]above:Presentation Layer}] {};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Thành phần chính:}
+\begin{itemize}
+    \item \textbf{Screens}: Các màn hình chính (ChatScreen, HomeScreen, CourseScreen...)
+    \item \textbf{Widgets}: UI components tái sử dụng (MessageBubble, CourseCard...)
+    \item \textbf{Providers}: State management với ChangeNotifier pattern
+\end{itemize}
+
+\subsection{Domain Layer}
+
+Tầng nghiệp vụ chứa business logic thuần túy, không phụ thuộc vào framework.
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    box/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=3.5cm,
+        minimum height=1cm,
+        text centered,
+        draw=secondarygreen,
+        fill=secondarygreen!10,
+        font=\small
+    }
+]
+
+\node[box] (entities) {Entities};
+\node[box, right=of entities] (usecases) {UseCases};
+\node[box, right=of usecases] (repos) {Repository (Abstract)};
+
+\node[draw=secondarygreen, dashed, rounded corners, fit=(entities)(usecases)(repos), 
+      inner sep=10pt, label={[font=\bfseries\color{secondarygreen}]above:Domain Layer}] {};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Thành phần chính:}
+\begin{itemize}
+    \item \textbf{Entities}: Business objects (ChatMessage, User, Course, Vocabulary)
+    \item \textbf{UseCases}: Các use case cụ thể (SendMessageUseCase, GetCoursesUseCase)
+    \item \textbf{Repository}: Interface định nghĩa contract cho data layer
+\end{itemize}
+
+\subsection{Data Layer}
+
+Tầng dữ liệu xử lý việc lấy và lưu trữ dữ liệu từ các nguồn khác nhau.
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    box/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=3cm,
+        minimum height=1cm,
+        text centered,
+        draw=accentorange,
+        fill=accentorange!10,
+        font=\small
+    }
+]
+
+\node[box] (models) {Models};
+\node[box, right=of models] (datasources) {DataSources};
+\node[box, right=of datasources] (repoimpl) {Repository Impl};
+
+\node[draw=accentorange, dashed, rounded corners, fit=(models)(datasources)(repoimpl), 
+      inner sep=10pt, label={[font=\bfseries\color{accentorange}]above:Data Layer}] {};
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Thành phần chính:}
+\begin{itemize}
+    \item \textbf{Models}: Data Transfer Objects với JSON serialization
+    \item \textbf{DataSources}: Local (SQLite) và Remote (API, Firebase)
+    \item \textbf{Repository Impl}: Triển khai cụ thể của Repository interface
+\end{itemize}
+
+\newpage
+
+% ===== SECTION 4: MODULE STRUCTURE =====
+\section{Cấu Trúc Module (Feature-First)}
+
+\subsection{Tổ Chức Thư Mục}
+
+\begin{tcolorbox}[colback=codebg, colframe=darkgray, title=Project Structure]
+\begin{verbatim}
+lib/
+├── core/                    # Shared utilities
+│   ├── di/                  # Dependency Injection
+│   ├── services/            # Core services
+│   ├── theme/               # App theming
+│   └── utils/               # Utilities
+│
+├── features/                # Feature modules
+│   ├── auth/                # Authentication
+│   ├── chat/                # AI Chat (NEW)
+│   ├── course/              # Courses
+│   ├── home/                # Home dashboard
+│   ├── user/                # User profile
+│   └── vocabulary/          # Vocabulary
+│
+└── main.dart                # Entry point
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{Cấu Trúc Một Feature Module}
+
+Mỗi feature module được tổ chức theo 3 layer:
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    folder/.style={
+        rectangle,
+        rounded corners=2pt,
+        minimum width=3.5cm,
+        minimum height=0.8cm,
+        text centered,
+        font=\small\ttfamily
+    },
+    subfolder/.style={
+        rectangle,
+        rounded corners=2pt,
+        minimum width=3cm,
+        minimum height=0.7cm,
+        text centered,
+        font=\scriptsize\ttfamily,
+        fill=gray!10,
+        draw=gray
+    }
+]
+
+% Feature container
+\node[folder, fill=primaryblue!20, draw=primaryblue] (feature) at (0,0) {feature/chat/};
+
+% Subdirectories - increased horizontal spacing
+\node[folder, fill=primaryblue!10, draw=primaryblue!50, below left=1.2cm and 2.5cm of feature] (presentation) {presentation/};
+\node[folder, fill=secondarygreen!10, draw=secondarygreen!50, below=1.2cm of feature] (domain) {domain/};
+\node[folder, fill=accentorange!10, draw=accentorange!50, below right=1.2cm and 2.5cm of feature] (data) {data/};
+
+% Sub-subdirectories - increased vertical spacing
+\node[subfolder, below=0.8cm of presentation] (prov) {providers/};
+\node[subfolder, below=0.5cm of prov] (screens) {screens/};
+\node[subfolder, below=0.5cm of screens] (widgets) {widgets/};
+
+\node[subfolder, below=0.8cm of domain] (entities) {entities/};
+\node[subfolder, below=0.5cm of entities] (usecases) {usecases/};
+\node[subfolder, below=0.5cm of usecases] (repos) {repositories/};
+
+\node[subfolder, below=0.8cm of data] (datasrc) {datasources/};
+\node[subfolder, below=0.5cm of datasrc] (models) {models/};
+\node[subfolder, below=0.5cm of models] (repoimpl) {repositories/};
+
+% Lines
+\draw[gray] (feature) -- (presentation);
+\draw[gray] (feature) -- (domain);
+\draw[gray] (feature) -- (data);
+
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+% ===== SECTION 5: AI CHAT MODULE =====
+\section{Module AI Chat}
+
+\subsection{Tổng Quan Module}
+
+Module \textbf{Chat} là tính năng cốt lõi cho phép người dùng tương tác với AI Tutor để học tiếng Anh.
+
+\begin{featurebox}
+\textbf{Tính năng chính:}
+\begin{itemize}
+    \item Hội thoại với AI tutor bằng văn bản
+    \item Kiểm tra và sửa lỗi ngữ pháp tự động
+    \item Giải thích từ vựng theo ngữ cảnh
+    \item Đánh giá độ trôi chảy (fluency scoring)
+    \item Lưu trữ lịch sử hội thoại
+\end{itemize}
+\end{featurebox}
+
+\subsection{Kiến Trúc AI Chat Module}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.8cm, scale=0.75]
+    % UI Layer
+    \node[rectangle, rounded corners, fill=primaryblue!30, draw=primaryblue, minimum width=2.5cm, minimum height=0.8cm] (screen) {ChatScreen};
+    \node[rectangle, rounded corners, fill=primaryblue!20, draw=primaryblue, minimum width=2.5cm, minimum height=0.8cm, right=1cm of screen] (provider) {ChatProvider};
+    
+    % Domain Layer
+    \node[rectangle, rounded corners, fill=secondarygreen!30, draw=secondarygreen, minimum width=2.5cm, minimum height=0.8cm, below=0.8cm of screen] (usecase) {UseCase};
+    
+    % Data Layer
+    \node[rectangle, rounded corners, fill=accentorange!30, draw=accentorange, minimum width=2.5cm, minimum height=0.8cm, below=0.8cm of usecase] (repo) {Repository};
+    
+    % Arrows
+    \draw[-Stealth, thick] (screen) -- (provider);
+    \draw[-Stealth, thick] (screen) -- (usecase);
+    \draw[-Stealth, thick] (usecase) -- (repo);
+\end{tikzpicture}
+\end{center}
+
+\textbf{Thành phần:} ChatScreen (UI) $\to$ ChatProvider (State) $\to$ UseCase (Logic) $\to$ Repository (Data)
+
+\subsection{AI Service Integration}
+
+Module Chat tích hợp với 3 AI services chính:
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.6cm, scale=0.75]
+    % Manager
+    \node[rectangle, rounded corners, fill=primaryblue!40, draw=primaryblue, line width=2pt, minimum width=3cm, minimum height=0.9cm, font=\bfseries] (manager) {AIServiceManager};
+    
+    % Services
+    \node[rectangle, rounded corners, fill=secondarygreen!30, draw=secondarygreen, minimum width=2.5cm, minimum height=0.8cm, below left=0.8cm and 0.5cm of manager] (qwen) {Qwen2.5 Base};
+    \node[rectangle, rounded corners, fill=accentorange!30, draw=accentorange, minimum width=2.5cm, minimum height=0.8cm, below=0.8cm of manager] (whisper) {Whisper STT};
+    \node[rectangle, rounded corners, fill=alertred!30, draw=alertred, minimum width=2.5cm, minimum height=0.8cm, below right=0.8cm and 0.5cm of manager] (lora) {4 LoRA Adapters};
+    
+    % Arrows
+    \draw[-Stealth, thick] (manager) -- (qwen);
+    \draw[-Stealth, thick] (manager) -- (whisper);
+    \draw[-Stealth, thick] (manager) -- (lora);
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+% ===== SECTION 6: DATA FLOW =====
+\section{Luồng Dữ Liệu (Data Flow)}
+
+\subsection{Gửi Tin Nhắn - Send Message Flow}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.6cm,
+    step/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=2.5cm,
+        minimum height=0.9cm,
+        text centered,
+        font=\scriptsize,
+        draw=darkgray
+    },
+    arrow/.style={
+        -Stealth,
+        thick,
+        darkgray
+    }
+]
+
+% Steps
+\node[step, fill=primaryblue!20] (s1) {1. User Input};
+\node[step, fill=primaryblue!20, right=of s1] (s2) {2. ChatProvider};
+\node[step, fill=secondarygreen!20, right=of s2] (s3) {3. SendMessage\\UseCase};
+\node[step, fill=accentorange!20, right=of s3] (s4) {4. ChatRepo};
+\node[step, fill=alertred!20, below=0.8cm of s4] (s5) {5. AI Service};
+\node[step, fill=accentorange!20, left=of s5] (s6) {6. Save to\\SQLite};
+\node[step, fill=secondarygreen!20, left=of s6] (s7) {7. Return\\Response};
+\node[step, fill=primaryblue!20, left=of s7] (s8) {8. Update UI};
+
+% Arrows
+\draw[arrow] (s1) -- (s2);
+\draw[arrow] (s2) -- (s3);
+\draw[arrow] (s3) -- (s4);
+\draw[arrow] (s4) -- (s5);
+\draw[arrow] (s5) -- (s6);
+\draw[arrow] (s6) -- (s7);
+\draw[arrow] (s7) -- (s8);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Chi Tiết Sequence Diagram}
+
+\begin{center}
+\begin{tikzpicture}[
+    actor/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=2cm,
+        minimum height=0.8cm,
+        text centered,
+        font=\small\bfseries,
+        fill=#1!30,
+        draw=#1
+    }
+]
+
+% Actors
+\node[actor=primaryblue] (user) at (0,0) {User};
+\node[actor=primaryblue] (provider) at (3,0) {Provider};
+\node[actor=secondarygreen] (usecase) at (6,0) {UseCase};
+\node[actor=accentorange] (repo) at (9,0) {Repository};
+\node[actor=alertred] (api) at (12,0) {AI API};
+
+% Lifelines
+\draw[dashed, gray] (user) -- (0,-8);
+\draw[dashed, gray] (provider) -- (3,-8);
+\draw[dashed, gray] (usecase) -- (6,-8);
+\draw[dashed, gray] (repo) -- (9,-8);
+\draw[dashed, gray] (api) -- (12,-8);
+
+% Messages
+\draw[-Stealth, thick] (0,-1) -- node[above, font=\tiny] {sendMessage(text)} (3,-1.5);
+\draw[-Stealth, thick] (3,-1.8) -- node[above, font=\tiny] {execute()} (6,-2.3);
+\draw[-Stealth, thick] (6,-2.6) -- node[above, font=\tiny] {sendToAI()} (9,-3.1);
+\draw[-Stealth, thick] (9,-3.4) -- node[above, font=\tiny] {POST /generate} (12,-3.9);
+
+\draw[-Stealth, thick, dashed] (12,-4.5) -- node[above, font=\tiny] {AI Response} (9,-5);
+\draw[-Stealth, thick, dashed] (9,-5.3) -- node[above, font=\tiny] {ChatMessage} (6,-5.8);
+\draw[-Stealth, thick, dashed] (6,-6.1) -- node[above, font=\tiny] {Result} (3,-6.6);
+\draw[-Stealth, thick, dashed] (3,-6.9) -- node[above, font=\tiny] {notifyListeners()} (0,-7.4);
+
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+% ===== SECTION 7: DEPENDENCY INJECTION =====
+\section{Dependency Injection}
+
+\subsection{GetIt Service Locator}
+
+Dự án sử dụng \textbf{GetIt} làm Service Locator để quản lý dependencies:
+
+\begin{tcolorbox}[colback=codebg, colframe=darkgray, title=injection\_container.dart]
+\begin{verbatim}
+final sl = GetIt.instance;
+
+Future<void> initializeDependencies() async {
+  // Core Services
+  sl.registerLazySingleton<FirestoreService>(
+    () => FirestoreService.instance
+  );
+  
+  // DataSources
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+    () => ChatRemoteDataSource(modelPath: qwenModelPath)
+  );
+  
+  // Repositories
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(remote: sl(), local: sl())
+  );
+  
+  // UseCases
+  sl.registerLazySingleton(
+    () => SendMessageUseCase(sl())
+  );
+  
+  // Providers
+  sl.registerFactory(
+    () => ChatProvider(sendMessage: sl(), getHistory: sl())
+  );
+}
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{Dependency Graph}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1cm,
+    dep/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=2.8cm,
+        minimum height=0.8cm,
+        text centered,
+        font=\scriptsize,
+        fill=#1!20,
+        draw=#1
+    }
+]
+
+% Top level
+\node[dep=primaryblue] (provider) {ChatProvider};
+
+% Use cases
+\node[dep=secondarygreen, below left=1cm and 0.2cm of provider] (senduc) {SendMessageUseCase};
+\node[dep=secondarygreen, below right=1cm and 0.2cm of provider] (getuc) {GetHistoryUseCase};
+
+% Repository
+\node[dep=accentorange, below=2cm of provider] (repo) {ChatRepository};
+
+% DataSources
+\node[dep=alertred, below left=1cm and 0.2cm of repo] (local) {LocalDataSource};
+\node[dep=alertred, below right=1cm and 0.2cm of repo] (remote) {RemoteDataSource};
+
+% Arrows
+\draw[-Stealth] (provider) -- (senduc);
+\draw[-Stealth] (provider) -- (getuc);
+\draw[-Stealth] (senduc) -- (repo);
+\draw[-Stealth] (getuc) -- (repo);
+\draw[-Stealth] (repo) -- (local);
+\draw[-Stealth] (repo) -- (remote);
+
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+% ===== SECTION 8: AI INTEGRATION =====
+\section{Tích Hợp AI Models}
+
+\subsection{Kiến Trúc AI Hybrid}
+
+LexiLingo sử dụng kiến trúc Hybrid AI kết hợp Cloud và On-device models:
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.6cm, scale=0.75]
+    % Input
+    \node[rectangle, rounded corners, fill=gray!20, draw=gray, minimum width=2cm, minimum height=0.7cm] (input) {User Input};
+    
+    % Router
+    \node[diamond, fill=accentorange!30, draw=accentorange, minimum width=1.5cm, minimum height=1.5cm, font=\small\bfseries, below=0.8cm of input] (router) {Router};
+    
+    % Services
+    \node[ellipse, fill=primaryblue!20, draw=primaryblue, minimum width=2cm, minimum height=0.8cm, below left=1cm and 0.5cm of router] (qwen) {Qwen Base};
+    \node[rectangle, rounded corners, fill=secondarygreen!20, draw=secondarygreen, minimum width=2cm, minimum height=0.8cm, below right=1cm and 0.5cm of router] (device) {4 LoRA Adapters};
+    
+    % Output
+    \node[rectangle, rounded corners, fill=gray!20, draw=gray, minimum width=2cm, minimum height=0.7cm, below=1.5cm of router] (output) {AI Response};
+    
+    % Arrows
+    \draw[-Stealth, thick] (input) -- (router);
+    \draw[-Stealth, thick] (router) -- (qwen);
+    \draw[-Stealth, thick] (router) -- (device);
+    \draw[-Stealth, thick] (qwen) -- (output);
+    \draw[-Stealth, thick] (device) -- (output);
+\end{tikzpicture}
+\end{center}
+
+\subsection{LoRA Adapters (Fine-tuned Models)}
+
+Hệ thống sử dụng 4 LoRA adapters được fine-tune từ Qwen2.5-1.5B:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Adapter} & \textbf{Task} & \textbf{Size} & \textbf{Loss} \\
+\hline
+Grammar & Sửa lỗi ngữ pháp & 151 MB & 0.77 \\
+Vocabulary & Giải thích từ vựng & 151 MB & 0.71 \\
+Dialogue & Hội thoại & 151 MB & 1.89 \\
+Fluency & Đánh giá độ trôi chảy & 151 MB & 1.78 \\
+\hline
+\end{tabular}
+\caption{LoRA Adapters Configuration}
+\end{table}
+
+\newpage
+
+% ===== SECTION 9: FEATURES OVERVIEW =====
+\section{Tổng Quan Các Feature Modules}
+
+\begin{center}
+\begin{tikzpicture}[
+    module/.style={
+        rectangle,
+        rounded corners=8pt,
+        minimum width=3.5cm,
+        minimum height=1.5cm,
+        text centered,
+        font=\small\bfseries,
+        drop shadow
+    }
+]
+
+% Core
+\node[module, fill=darkgray!30, draw=darkgray] (core) at (0,0) {\faHeart\ Core};
+
+% Features around core
+\node[module, fill=primaryblue!30, draw=primaryblue] (auth) at (-5,2) {\faUser\ Auth};
+\node[module, fill=secondarygreen!30, draw=secondarygreen] (chat) at (-3,3.5) {\faComments\ Chat};
+\node[module, fill=accentorange!30, draw=accentorange] (course) at (0,4) {\faBook\ Course};
+\node[module, fill=alertred!30, draw=alertred] (vocab) at (3,3.5) {\faLanguage\ Vocabulary};
+\node[module, fill=purple!30, draw=purple] (home) at (5,2) {\faHome\ Home};
+\node[module, fill=cyan!30, draw=cyan] (user) at (5,-1) {\faUserCog\ User};
+\node[module, fill=pink!30, draw=pink] (notify) at (3,-2.5) {\faBell\ Notifications};
+\node[module, fill=lime!30, draw=lime] (profile) at (-3,-2.5) {\faIdCard\ Profile};
+
+% Connections
+\draw[gray, thick] (core) -- (auth);
+\draw[gray, thick] (core) -- (chat);
+\draw[gray, thick] (core) -- (course);
+\draw[gray, thick] (core) -- (vocab);
+\draw[gray, thick] (core) -- (home);
+\draw[gray, thick] (core) -- (user);
+\draw[gray, thick] (core) -- (notify);
+\draw[gray, thick] (core) -- (profile);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Mô Tả Các Module}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|p{8cm}|l|}
+\hline
+\textbf{Module} & \textbf{Mô Tả} & \textbf{Trạng Thái} \\
+\hline
+Auth & Xác thực với Google Sign-In, Firebase Auth & \textcolor{secondarygreen}{Done} \\
+Chat & AI Tutor conversation, grammar check & \textcolor{secondarygreen}{Done} \\
+Course & Quản lý khóa học, bài học & \textcolor{secondarygreen}{Done} \\
+Vocabulary & Từ vựng, flashcards, spaced repetition & \textcolor{secondarygreen}{Done} \\
+Home & Dashboard, quick stats, recent activity & \textcolor{secondarygreen}{Done} \\
+User & Profile, settings, preferences & \textcolor{secondarygreen}{Done} \\
+Notifications & Push notifications, reminders & \textcolor{accentorange}{In Progress} \\
+Profile & User stats, achievements & \textcolor{secondarygreen}{Done} \\
+\hline
+\end{tabular}
+\caption{Feature Modules Status}
+\end{table}
+
+\newpage
+
+% ===== SECTION 10: DEEP LEARNING ARCHITECTURE =====
+\section{Kiến Trúc Deep Learning (DL)}
+
+\subsection{Tổng Quan Pipeline Xử Lý AI}
+
+Khi người dùng tương tác với LexiLingo, dữ liệu đi qua một \textbf{pipeline xử lý đa tầng} như sau:
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    box/.style={rectangle, rounded corners, minimum width=2.5cm, minimum height=0.7cm, align=center},
+    smallbox/.style={rectangle, rounded corners, minimum width=1.8cm, minimum height=0.5cm, font=\tiny, align=center}
+]
+    % Input
+    \node[box, fill=gray!30, draw=gray] (input) {Input\\(Voice/Text)};
+    
+    % STT
+    \node[box, fill=primaryblue!30, draw=primaryblue, below=0.5cm of input] (stt) {STT:\\Whisper v3};
+    
+    % NLP Engine container
+    \node[box, fill=accentorange!40, draw=accentorange, line width=2pt, minimum width=4.5cm, minimum height=2.2cm, below=0.5cm of stt] (nlp) {};
+    \node[above=0.05cm, font=\small\bfseries] at (nlp.north) {NLP Engine: Qwen2.5 + LoRA};
+    
+    % 4 tasks inside NLP
+    \node[smallbox, fill=primaryblue!20, draw=primaryblue] at ([yshift=0.35cm, xshift=-1.1cm]nlp.center) {Fluency};
+    \node[smallbox, fill=secondarygreen!20, draw=secondarygreen] at ([yshift=0.35cm, xshift=1.1cm]nlp.center) {Grammar};
+    \node[smallbox, fill=alertred!20, draw=alertred] at ([yshift=-0.35cm, xshift=-1.1cm]nlp.center) {Vocabulary};
+    \node[smallbox, fill=purple!20, draw=purple] at ([yshift=-0.35cm, xshift=1.1cm]nlp.center) {Dialogue};
+    
+    % Pronunciation (parallel)
+    \node[box, fill=cyan!30, draw=cyan, right=1.2cm of nlp] (pron) {HuBERT\\(Pronunciation)};
+    
+    % Response Aggregator
+    \node[box, fill=secondarygreen!30, draw=secondarygreen, minimum width=3cm, below=0.5cm of nlp] (agg) {Response\\Aggregator};
+    
+    % TTS
+    \node[box, fill=alertred!30, draw=alertred, below=0.5cm of agg] (tts) {TTS:\\Piper/Native};
+    
+    % Output
+    \node[box, fill=gray!30, draw=gray, below=0.5cm of tts] (output) {Output\\(Voice/Text)};
+    
+    % Arrows
+    \draw[-Stealth, thick] (input) -- (stt);
+    \draw[-Stealth, thick] (stt) -- (nlp);
+    \draw[-Stealth, thick, dashed] (stt.east) -- ++(0.4,0) |- (pron);
+    \draw[-Stealth, thick] (nlp) -- (agg);
+    \draw[-Stealth, thick] (pron) |- (agg);
+    \draw[-Stealth, thick] (agg) -- (tts);
+    \draw[-Stealth, thick] (tts) -- (output);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Tầng 1: Speech-to-Text (STT) - Nhận Dạng Giọng Nói}
+
+\subsubsection{Mục đích và Vị trí}
+Module STT là \textbf{điểm vào đầu tiên} khi người dùng nói tiếng Anh. Nó chuyển đổi audio thành text để các module NLP có thể xử lý.
+
+\subsubsection{Model sử dụng: OpenAI Whisper v3}
+
+\textbf{Tại sao chọn Whisper?}
+\begin{itemize}
+    \item Pre-trained trên \textbf{680,000 giờ} dữ liệu đa ngôn ngữ
+    \item Hỗ trợ tốt cho \textbf{non-native speakers} (Vietnamese accent)
+    \item Cung cấp \textbf{word-level timestamps} cho phân tích phát âm
+    \item Open-source, có thể chạy offline hoàn toàn
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Variant} & \textbf{Params} & \textbf{WER} & \textbf{Latency} & \textbf{Use Case} \\
+\hline
+Whisper Large v3 & 1.5B & 3-5\% & 200-300ms & Development \\
+Whisper Medium & 769M & 5-7\% & 100-200ms & High-end mobile \\
+Whisper Small & 244M & 8-10\% & 50-100ms & \textbf{Production mobile} \\
+\hline
+\end{tabular}
+\caption{Whisper Model Variants}
+\end{table}
+
+\subsubsection{Quy trình xử lý chi tiết}
+
+\begin{tcolorbox}[colback=codebg, colframe=primaryblue, title=STT Processing Pipeline]
+\begin{verbatim}
+Bước 1: Audio Preprocessing
+├── Resample → 16kHz mono (Whisper requirement)
+├── Normalize → Peak -3dB (consistent volume)
+├── VAD (Silero) → Loại bỏ silence segments
+└── Chunking → 30s segments với 1s overlap
+
+Bước 2: Whisper Inference
+├── Encoder: Mel spectrogram → 1500 frames
+├── Decoder: Auto-regressive text generation
+├── Beam search: width=5 for accuracy
+└── Output: Text + confidence per word
+
+Bước 3: Post-processing
+├── Normalize text (lowercase, punctuation)
+├── Filter low-confidence words (< 0.6)
+└── Extract timestamps for pronunciation
+
+Output Example:
+{
+  "text": "I like learning English",
+  "confidence": 0.94,
+  "words": [
+    {"word": "I", "start": 0.0, "end": 0.2, "conf": 0.98},
+    {"word": "like", "start": 0.3, "end": 0.6, "conf": 0.95}
+  ]
+}
+\end{verbatim}
+\end{tcolorbox}
+
+\newpage
+
+\subsection{Tầng 2: NLP Processing Engine - Xử Lý Ngôn Ngữ}
+
+Đây là \textbf{trái tim của hệ thống}, sử dụng kiến trúc \textbf{Unified Multi-Task} với 1 base model + 4 LoRA adapters.
+
+\subsubsection{Tại sao chọn kiến trúc này?}
+
+\begin{featurebox}
+\textbf{So sánh: 4 models riêng vs 1 base + 4 adapters}
+
+\textbf{4 Models riêng lẻ:}
+\begin{itemize}
+    \item RAM: 4 × 2GB = 8GB
+    \item Storage: 4 × 900MB = 3.6GB
+    \item Switching time: 2-5 giây (reload model)
+\end{itemize}
+
+\textbf{1 Base + 4 LoRA Adapters (Our Choice):}
+\begin{itemize}
+    \item RAM: 2GB (base) + 100MB (adapters) = \textbf{2.1GB}
+    \item Storage: 900MB + 4×25MB = \textbf{1GB}
+    \item Switching time: \textbf{< 1ms} (chỉ swap adapter weights)
+\end{itemize}
+
+$\Rightarrow$ \textbf{Tiết kiệm 72\% RAM, 72\% storage}
+\end{featurebox}
+
+\subsubsection{Base Model: Qwen2.5-1.5B-Instruct}
+
+\textbf{Tại sao chọn Qwen2.5?}
+\begin{itemize}
+    \item \textbf{Instruction-tuned}: Hiểu trực tiếp các câu lệnh như "Check grammar", "Rate fluency"
+    \item \textbf{Multilingual}: Pre-trained trên 18T tokens, mạnh về English
+    \item \textbf{Efficient}: 1.5B params nhưng hiệu năng ngang GPT-3.5 trên nhiều tasks
+    \item \textbf{Open-source}: Apache 2.0 license, không phụ thuộc API
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Specification} & \textbf{Development (1.5B)} & \textbf{Production (0.5B)} \\
+\hline
+Architecture & Decoder-only Transformer & Same \\
+Layers & 28 & 24 \\
+Hidden Size & 1536 & 896 \\
+Attention Heads & 12 & 14 \\
+Context Window & 32,768 tokens & 32,768 tokens \\
+Vocab Size & 151,936 (BPE) & 151,936 \\
+Model Size (Q4) & 900MB & 300MB \\
+Inference Time & 100ms/sentence & 50ms/sentence \\
+\hline
+\end{tabular}
+\caption{Qwen2.5 Model Architecture}
+\end{table}
+
+\subsubsection{LoRA (Low-Rank Adaptation) - Kỹ thuật Fine-tuning}
+
+\textbf{LoRA hoạt động như thế nào?}
+
+Thay vì fine-tune toàn bộ 1.5B parameters, LoRA chỉ train \textbf{low-rank matrices} được inject vào attention layers:
+
+$$W_{new} = W_{base} + \Delta W = W_{base} + BA$$
+
+Trong đó: $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$, với $r \ll \min(d, k)$
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Parameter} & \textbf{Value} & \textbf{Giải thích} \\
+\hline
+Rank (r) & 32 & Số chiều của low-rank decomposition \\
+Alpha ($\alpha$) & 64 & Scaling factor: $\alpha/r = 2$ \\
+Target Modules & 7 & q, k, v, o, gate, up, down\_proj \\
+Trainable Params & 25M & Chỉ \textbf{1.7\%} của 1.5B base \\
+Dropout & 0.05 & Regularization \\
+\hline
+\end{tabular}
+\caption{LoRA Configuration}
+\end{table}
+
+\newpage
+
+\subsection{Chi Tiết 4 LoRA Adapters}
+
+\subsubsection{Adapter 1: Fluency Scoring - Đánh Giá Độ Trôi Chảy}
+
+\textbf{Vị trí trong pipeline:} Được gọi \textbf{đầu tiên} sau khi nhận text từ STT để đánh giá tổng quan chất lượng câu nói.
+
+\textbf{Nhiệm vụ:} Cho điểm từ 0.0 đến 1.0 dựa trên:
+\begin{itemize}
+    \item Độ tự nhiên của câu (naturalness)
+    \item Độ phức tạp ngữ pháp (grammatical complexity)
+    \item Sự mạch lạc (coherence)
+    \item Phù hợp ngữ cảnh (contextual appropriateness)
+\end{itemize}
+
+\begin{tcolorbox}[colback=codebg, colframe=primaryblue, title=Fluency Adapter - Quy Trình]
+\begin{verbatim}
+INPUT FORMAT (Instruction-tuning):
+<|im_start|>user
+Rate the fluency of this English sentence from 0.0 to 1.0:
+"Yesterday I go to library for study English"
+Provide score and brief reasoning.
+<|im_end|>
+<|im_start|>assistant
+
+MODEL PROCESSING:
+1. Tokenize input → 45 tokens
+2. Load fluency adapter weights (~25MB)
+3. Forward pass through Qwen2.5 + LoRA
+4. Generate score + reasoning
+
+OUTPUT:
+{
+  "fluency_score": 0.45,
+  "reasoning": "Multiple grammar errors: verb tense 
+               (go→went), missing article (the library),
+               preposition (for→to). Sentence is 
+               understandable but not fluent.",
+  "confidence": 0.88
+}
+
+TRAINING DATA: 1,500 samples from EFCAMDAT corpus
+LOSS: MSE(predicted_score, human_score)
+METRICS: MAE=0.12, Pearson r=0.91
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection{Adapter 2: Grammar Correction - Sửa Lỗi Ngữ Pháp}
+
+\textbf{Vị trí trong pipeline:} Chạy \textbf{song song} với Fluency, sử dụng \textbf{2-tier architecture}:
+\begin{enumerate}
+    \item \textbf{Tier 1 - ERRANT}: Rule-based detection (nhanh, <5ms)
+    \item \textbf{Tier 2 - Qwen + LoRA}: Deep correction + explanation
+\end{enumerate}
+
+\textbf{Tại sao cần 2 tiers?}
+\begin{itemize}
+    \item ERRANT phát hiện lỗi nhanh, chính xác cho lỗi đơn giản
+    \item LLM xử lý lỗi phức tạp, cung cấp giải thích chi tiết
+    \item Kết hợp: Nhanh + Chính xác + Có giải thích
+\end{itemize}
+
+\begin{tcolorbox}[colback=codebg, colframe=secondarygreen, title=Grammar Adapter - Two-Tier Pipeline]
+\begin{verbatim}
+TIER 1: ERRANT (Rule-based, <5ms)
+Input: "Yesterday I go to library"
+Output: [
+  {type: "VERB:TENSE", orig: "go", corr: "went", pos: 2},
+  {type: "DET", orig: "", corr: "the", pos: 4}
+]
+
+TIER 2: Qwen + LoRA (Deep correction, ~150ms)
+Input: Original text + ERRANT hints
+Output:
+{
+  "original": "Yesterday I go to library",
+  "corrected": "Yesterday I went to the library",
+  "errors": [
+    {
+      "type": "VERB_TENSE",
+      "original": "go",
+      "corrected": "went", 
+      "explanation": "Use past tense 'went' with time 
+                     marker 'yesterday'. Simple past
+                     indicates completed action."
+    },
+    {
+      "type": "MISSING_ARTICLE",
+      "original": "library",
+      "corrected": "the library",
+      "explanation": "Use definite article 'the' for 
+                     specific places known to both
+                     speaker and listener."
+    }
+  ]
+}
+
+TRAINING DATA: 9,200 samples (BEA-2019, CoNLL-2014, FCE)
+LOSS: CrossEntropy + Confidence score
+METRICS: F0.5=68, Precision=78%, Recall=68%
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection{Adapter 3: Vocabulary Classification - Phân Loại Từ Vựng}
+
+\textbf{Vị trí trong pipeline:} Chạy \textbf{song song} để xác định trình độ CEFR của người học, giúp Dialogue adapter điều chỉnh response phù hợp.
+
+\textbf{CEFR Levels được hỗ trợ:}
+\begin{itemize}
+    \item \textbf{A2 (Elementary)}: Từ vựng cơ bản - go, like, friend, school
+    \item \textbf{B1 (Intermediate)}: Từ vựng trung cấp - discuss, environment, improve
+    \item \textbf{B2 (Upper-Intermediate)}: Từ vựng nâng cao - comprehensive, demonstrate
+\end{itemize}
+
+\begin{tcolorbox}[colback=codebg, colframe=alertred, title=Vocabulary Adapter - Classification]
+\begin{verbatim}
+INPUT:
+"I want to discuss the environmental problems 
+ that affect our community"
+
+PROCESSING:
+1. Word-level CEFR lookup (Trie-based, O(n)):
+   - discuss → B1
+   - environmental → B2  
+   - problems → A2
+   - affect → B1
+   - community → B1
+
+2. LLM refinement (context-aware):
+   - Sentence structure complexity → B1-B2
+   - Topic sophistication → B1
+
+OUTPUT:
+{
+  "overall_level": "B1",
+  "distribution": {"A2": 0.15, "B1": 0.55, "B2": 0.30},
+  "key_words": {
+    "B2": ["environmental"],
+    "B1": ["discuss", "affect", "community"],
+    "A2": ["want", "problems"]
+  },
+  "recommendation": "User demonstrates solid B1 level
+                    with some B2 vocabulary. Ready for
+                    more complex topics."
+}
+
+TRAINING DATA: 2,500 samples (Oxford Graded Readers)
+LOSS: CrossEntropy with class weights [0.9, 1.0, 1.1]
+METRICS: Accuracy=90%, Macro F1=0.89
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection{Adapter 4: Dialogue Response - Sinh Phản Hồi AI Tutor}
+
+\textbf{Vị trí trong pipeline:} Chạy \textbf{cuối cùng}, tổng hợp kết quả từ 3 adapters trước để sinh response phù hợp.
+
+\textbf{Tại sao cần AutoTutor Dialogue Corpus?}
+\begin{itemize}
+    \item \textbf{Socratic Tutoring}: Dạy qua câu hỏi gợi mở thay vì đưa đáp án trực tiếp
+    \item \textbf{Scaffolding}: Hỗ trợ từng bước, điều chỉnh theo trình độ học sinh
+    \item \textbf{Pedagogical Strategies}: Khuyến khích, phản hồi xây dựng, duy trì động lực
+    \item \textbf{Conversational Coherence}: Duy trì맥络 hội thoại tự nhiên, không máy móc
+\end{itemize}
+
+\textbf{Context Variables được sử dụng:}
+\begin{itemize}
+    \item Fluency score từ Adapter 1
+    \item Grammar errors từ Adapter 2
+    \item CEFR level từ Adapter 3
+    \item Conversation history (3 turns gần nhất)
+\end{itemize}
+
+\begin{tcolorbox}[colback=codebg, colframe=purple, title=Dialogue Adapter - Response Generation]
+\begin{verbatim}
+CONTEXT INPUT:
+{
+  "user_input": "Yesterday I go to library",
+  "fluency_score": 0.45,
+  "cefr_level": "A2",
+  "errors": ["VERB_TENSE", "MISSING_ARTICLE"],
+  "history": ["Hi, how are you?", "I'm fine, thanks!"]
+}
+
+PERSONA: Friendly, encouraging English tutor
+TONE ADAPTATION:
+- A2: Simple words, short sentences, more encouragement
+- B1: Natural conversation, moderate complexity
+- B2: Near-native interaction, subtle corrections
+
+GENERATION CONFIG:
+- Temperature: 0.7 (balanced creativity)
+- Top-p: 0.9 (nucleus sampling)
+- Max tokens: 100
+- Stop tokens: ["<|im_end|>"]
+
+OUTPUT:
+{
+  "response": "Good effort! 👍 You should say 'Yesterday 
+              I went to the library.' Remember: use 
+              'went' for past actions, and 'the' before 
+              'library'. What did you do there?",
+  "corrections_included": true,
+  "follow_up_question": true,
+  "tone": "encouraging",
+  "adapted_for_level": "A2"
+}
+
+TRAINING DATA: 5,200 samples
+├── AutoTutor Dialogue Corpus: 1,800 samples
+│   (Tutorial dialogues, Socratic questioning)
+├── Intel/orca-dpo-pairs: 1,500 samples
+│   (High-quality instruction following)
+├── Custom tutoring conversations: 1,900 samples
+│   (English learning scenarios)
+└── Total: 5,200 tutoring-style interactions
+
+LOSS: CrossEntropy on response tokens
+METRICS: Quality=96%, Appropriateness=94%
+Tutoring Style Score: 89% (human evaluation)
+\end{verbatim}
+\end{tcolorbox}
+
+\newpage
+
+\subsection{Tầng 3: Pronunciation Analysis - Phân Tích Phát Âm}
+
+\subsubsection{Model: HuBERT-large (facebook/hubert-large-ls960)}
+
+\textbf{Vị trí:} Chạy \textbf{song song} với NLP Engine, nhận audio trực tiếp từ STT.
+
+\textbf{HuBERT (Hidden-Unit BERT) hoạt động như thế nào?}
+\begin{enumerate}
+    \item \textbf{Self-supervised pre-training}: Học representations từ 960h LibriSpeech
+    \item \textbf{Phoneme recognition}: CTC decoding để nhận dạng 44 ARPAbet phonemes
+    \item \textbf{Forced alignment}: So sánh với native speaker reference
+\end{enumerate}
+
+\begin{tcolorbox}[colback=codebg, colframe=cyan, title=Pronunciation Analysis Pipeline]
+\begin{verbatim}
+STEP 1: Phoneme Recognition (HuBERT + CTC)
+Audio: "think" → /θ/ /ɪ/ /ŋ/ /k/
+User pronounced: /s/ /ɪ/ /ŋ/ /k/
+
+STEP 2: Forced Alignment (DTW Algorithm)
+Compare user phonemes vs native reference:
+| Position | Expected | User    | Status      |
+|----------|----------|---------|-------------|
+| 1        | /θ/      | /s/     | SUBSTITUTION|
+| 2        | /ɪ/      | /ɪ/     | CORRECT     |
+| 3        | /ŋ/      | /ŋ/     | CORRECT     |
+| 4        | /k/      | /k/     | CORRECT     |
+
+STEP 3: Error Analysis
+{
+  "phoneme_accuracy": 0.75,
+  "errors": [
+    {
+      "type": "SUBSTITUTION",
+      "expected": "/θ/ (voiceless dental fricative)",
+      "actual": "/s/ (voiceless alveolar fricative)",
+      "word": "think",
+      "tip": "Place tongue between teeth for 'th' sound"
+    }
+  ],
+  "prosody": {
+    "stress_pattern": "correct",
+    "intonation": "slightly flat"
+  }
+}
+
+MODEL: facebook/hubert-large-ls960 (960M params)
+LATENCY: <500ms per utterance
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{Tầng 4: Text-to-Speech (TTS) - Chuyển Văn Bản Thành Giọng Nói}
+
+\textbf{Hệ thống sử dụng 3-tier TTS} để cân bằng chất lượng và tốc độ:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Tier} & \textbf{Model} & \textbf{Size} & \textbf{Latency} & \textbf{Use Case} \\
+\hline
+1 & Native OS TTS & 0MB & <100ms & Quick feedback \\
+2 & Piper TTS (VITS) & 30-60MB & 100-300ms & Pronunciation demos \\
+3 & Cloud TTS & 0MB & 300-800ms & Premium quality \\
+\hline
+\end{tabular}
+\caption{TTS Tier System}
+\end{table}
+
+\subsection{Training Pipeline Chi Tiết}
+
+\begin{tcolorbox}[colback=codebg, colframe=darkgray, title=LoRA Training Pipeline]
+\begin{verbatim}
+PHASE 1: Data Preparation
+├── Collect domain-specific data:
+│   • Fluency: 1,500 (EFCAMDAT)
+│   • Grammar: 9,200 (BEA-2019, CoNLL-2014, FCE)
+│   • Vocabulary: 2,500 (Oxford Graded Readers)
+│   • Dialogue: 5,200 (AutoTutor, Intel/orca, Custom)
+├── Format: Instruction-tuning template (<|im_start|>...)
+├── Split: 70% train / 15% val / 15% test
+└── Augmentation: Back-translation, paraphrase
+
+PHASE 2: Environment Setup
+├── Hardware: Mac M1/M2 32GB or NVIDIA GPU
+├── Framework: PyTorch + Transformers + PEFT
+├── Precision: BFloat16 (faster on Apple Silicon)
+└── Batch: 8 (gradient accumulation 4 → effective 32)
+
+PHASE 3: Training
+├── Optimizer: AdamW (lr=2e-4, weight_decay=0.01)
+├── Scheduler: Cosine with 3% warmup
+├── Epochs: 5-7
+├── Gradient clipping: 1.0
+└── Early stopping: patience=3
+
+PHASE 4: Evaluation
+├── Fluency: MAE, Pearson correlation
+├── Grammar: F0.5, Precision, Recall
+├── Vocabulary: Accuracy, Macro F1
+└── Dialogue: Human evaluation (quality, appropriateness)
+
+PHASE 5: Production Optimization
+├── Quantization: INT8 / INT4
+├── Knowledge distillation: 1.5B → 0.5B
+└── Export: ONNX / TensorRT for mobile
+\end{verbatim}
+\end{tcolorbox}
+
+\subsection{So Sánh Development vs Production}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Component} & \textbf{Development} & \textbf{Production} \\
+\hline
+\multicolumn{3}{|c|}{\textbf{Speech-to-Text}} \\
+\hline
+Model & Whisper Large v3 & Whisper Small \\
+Size & 1.5GB & 500MB \\
+WER & 3-5\% & 8-10\% \\
+RAM & 4GB & 1.5GB \\
+\hline
+\multicolumn{3}{|c|}{\textbf{NLP Engine (Unified)}} \\
+\hline
+Base Model & Qwen2.5-1.5B & Qwen2.5-0.5B \\
+LoRA Adapters & 4 × 25MB & 4 × 8MB \\
+RAM & 2GB & 600MB \\
+Quality & 96\% & 91\% \\
+\hline
+\multicolumn{3}{|c|}{\textbf{Pronunciation}} \\
+\hline
+Model & HuBERT-large & Server-side \\
+Params & 960M & API call \\
+\hline
+\multicolumn{3}{|c|}{\textbf{TTS}} \\
+\hline
+Model & Native + Piper & Native only \\
+Size & 0-60MB & 0MB \\
+\hline
+\multicolumn{3}{|c|}{\textbf{TOTAL}} \\
+\hline
+RAM & 6-7GB & 2.4GB \\
+Storage & 3GB & 1GB \\
+Latency & \textasciitilde 600ms & \textasciitilde 400ms \\
+\hline
+\end{tabular}
+\caption{Development vs Production Comparison}
+\end{table}
+
+\newpage
+
+% ===== SECTION 11: CONCLUSION =====
+\section{Kết Luận}
+
+\subsection{Tóm Tắt Kiến Trúc}
+
+\begin{infobox}[Điểm Nổi Bật]
+\begin{itemize}
+    \item \textbf{Clean Architecture}: Tách biệt rõ ràng Presentation - Domain - Data
+    \item \textbf{Feature-First}: Tổ chức code theo feature, dễ maintain
+    \item \textbf{Dependency Injection}: Sử dụng GetIt cho loose coupling
+    \item \textbf{Hybrid AI}: Kết hợp Cloud + On-device models
+    \item \textbf{Cross-Platform}: Flutter cho iOS, Android, Web
+\end{itemize}
+\end{infobox}
+
+\subsection{Roadmap Phát Triển}
+
+\begin{enumerate}
+    \item \textbf{Phase 1 (Current)}: Core features - Chat, Course, Vocabulary
+    \item \textbf{Phase 2}: Voice interaction - STT/TTS integration
+    \item \textbf{Phase 3}: Advanced AI - On-device inference với LoRA adapters
+    \item \textbf{Phase 4}: Social features - Leaderboard, community
+\end{enumerate}
+
+\subsection{Thông Tin Dự Án}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Thông Tin} & \textbf{Chi Tiết} \\
+\midrule
+Version & v0.2.0 \\
+Flutter SDK & 3.29+ \\
+Dart SDK & 3.8.1+ \\
+Platforms & iOS, Android, Web \\
+Repository & \href{https://github.com/InfinityZero3000/LexiLingo}{github.com/InfinityZero3000/LexiLingo} \\
+Branch & feature \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vfill
+
+\begin{center}
+\textit{Document generated on \today}\\[0.5cm]
+{\Large\color{primaryblue}\textbf{LexiLingo} - Learn English with AI}
+\end{center}
+
+\end{document}

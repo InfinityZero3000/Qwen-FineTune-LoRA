@@ -1,0 +1,189 @@
+# TTS (Text-to-Speech) Configuration for LexiLingo
+# Primary: Piper TTS | Fast: Native OS TTS
+
+# =============================================================================
+# PIPER TTS Configuration (High Quality Offline)
+# =============================================================================
+piper:
+  # Available voices for English
+  voices:
+    en_US:
+      - name: "en_US-amy-medium"
+        gender: "female"
+        quality: "medium"
+        size_mb: 45
+        recommended: true
+        
+      - name: "en_US-ryan-medium"
+        gender: "male"
+        quality: "medium"
+        size_mb: 42
+        
+      - name: "en_US-lessac-medium"
+        gender: "female"
+        quality: "high"
+        size_mb: 60
+        use_case: "pronunciation_demo"
+        
+      - name: "en_US-joe-medium"
+        gender: "male"
+        quality: "medium"
+        size_mb: 40
+    
+    en_GB:
+      - name: "en_GB-alba-medium"
+        gender: "female"
+        quality: "medium"
+        size_mb: 48
+        
+      - name: "en_GB-semaine-medium"
+        gender: "male"
+        quality: "medium"
+        size_mb: 46
+  
+  # Default voice
+  default_voice: "en_US-amy-medium"
+  
+  # Audio settings
+  audio:
+    sample_rate: 22050
+    output_format: "wav"
+    normalize: true
+  
+  # Synthesis settings
+  synthesis:
+    length_scale: 1.0      # Speed (0.5 = fast, 2.0 = slow)
+    noise_scale: 0.667     # Variation
+    noise_w: 0.8           # Duration variation
+    
+  # Phoneme settings
+  phonemize:
+    backend: "espeak-ng"
+    language: "en-us"
+    preserve_punctuation: true
+
+# =============================================================================
+# Native TTS Configuration (System voices)
+# =============================================================================
+native:
+  # iOS - AVSpeechSynthesizer
+  ios:
+    default_voice: "com.apple.voice.enhanced.en-US.Samantha"
+    enhanced_voices:
+      - "com.apple.voice.enhanced.en-US.Samantha"
+      - "com.apple.voice.enhanced.en-US.Alex"
+      - "com.apple.voice.enhanced.en-GB.Daniel"
+    rate: 0.5        # 0.0 - 1.0
+    pitch: 1.0       # 0.5 - 2.0
+    volume: 1.0      # 0.0 - 1.0
+  
+  # Android - TextToSpeech
+  android:
+    engine: "com.google.android.tts"
+    language: "en-US"
+    speech_rate: 1.0   # 0.1 - 10.0
+    pitch: 1.0         # 0.1 - 2.0
+
+# =============================================================================
+# Hybrid TTS Router Configuration
+# =============================================================================
+router:
+  # Use case routing
+  routing_rules:
+    pronunciation_demo:
+      engine: "piper"
+      voice: "en_US-lessac-medium"
+      reason: "Best quality for learning"
+      
+    quick_response:
+      engine: "native"
+      reason: "Fastest, no loading"
+      
+    lesson_content:
+      engine: "piper"
+      voice: "en_US-amy-medium"
+      reason: "Consistent quality"
+      
+    offline:
+      engine: "piper"
+      fallback: "native"
+      reason: "Piper is offline-capable"
+  
+  # Quality vs Speed tradeoff
+  default_mode: "balanced"  # fast, balanced, quality
+  
+  modes:
+    fast:
+      engine: "native"
+      cache_enabled: true
+      
+    balanced:
+      engine: "piper"
+      voice: "medium"
+      cache_enabled: true
+      
+    quality:
+      engine: "piper"
+      voice: "lessac"
+      cache_enabled: false
+
+# =============================================================================
+# Audio Post-processing
+# =============================================================================
+postprocessing:
+  # Normalization
+  normalize:
+    enabled: true
+    target_db: -3.0
+    
+  # Silence trimming
+  trim_silence:
+    enabled: true
+    threshold_db: -40
+    
+  # Format conversion
+  output:
+    format: "mp3"
+    bitrate: 128
+    sample_rate: 22050
+
+# =============================================================================
+# Caching Configuration
+# =============================================================================
+cache:
+  enabled: true
+  max_size_mb: 100
+  ttl_hours: 168  # 1 week
+  
+  # Pre-cache common phrases
+  precache_phrases:
+    - "Hello! How can I help you today?"
+    - "Great job! You're doing well."
+    - "Let me explain this word."
+    - "Try saying it again."
+    - "That's correct!"
+    - "Not quite. Let me help you."
+
+# =============================================================================
+# Cloud TTS (Premium fallback)
+# =============================================================================
+cloud:
+  # Google Cloud TTS
+  google:
+    enabled: true
+    voice_name: "en-US-Neural2-J"
+    audio_encoding: "MP3"
+    speaking_rate: 1.0
+    pitch: 0.0
+    
+  # Azure Neural TTS
+  azure:
+    enabled: false
+    voice_name: "en-US-JennyNeural"
+    style: "friendly"
+    
+  # Use cloud for
+  use_cases:
+    - "premium_users"
+    - "pronunciation_scoring"
+    - "accent_variety"

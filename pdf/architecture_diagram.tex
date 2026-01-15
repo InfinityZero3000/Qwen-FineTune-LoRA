@@ -1,0 +1,473 @@
+\documentclass[12pt,a4paper,landscape]{article}
+\usepackage[utf8]{vietnam}
+\usepackage[margin=1cm]{geometry}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{amssymb}
+
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, shadows}
+
+% Define colors
+\definecolor{primaryblue}{RGB}{41,128,185}
+\definecolor{secondaryblue}{RGB}{52,152,219}
+\definecolor{lightblue}{RGB}{174,214,241}
+\definecolor{darkblue}{RGB}{21,67,96}
+\definecolor{green}{RGB}{39,174,96}
+\definecolor{lightgreen}{RGB}{125,206,160}
+\definecolor{orange}{RGB}{230,126,34}
+\definecolor{lightorange}{RGB}{245,176,65}
+\definecolor{red}{RGB}{231,76,60}
+\definecolor{purple}{RGB}{142,68,173}
+\definecolor{lightpurple}{RGB}{187,143,206}
+\definecolor{gray}{RGB}{149,165,166}
+\definecolor{lightgray}{RGB}{236,240,241}
+
+% Custom Styles
+\tikzset{
+    user/.style={
+        rectangle, rounded corners,
+        minimum width=3cm, minimum height=1cm,
+        text centered, draw=darkblue, fill=lightblue,
+        drop shadow, line width=1.5pt, font=\bfseries
+    },
+    frontend/.style={
+        rectangle, rounded corners,
+        minimum width=3cm, minimum height=1cm,
+        text centered, draw=green, fill=lightgreen!40,
+        drop shadow, line width=1.2pt
+    },
+    gateway/.style={
+        trapezium, trapezium left angle=70, trapezium right angle=110,
+        minimum width=3cm, minimum height=1cm,
+        text centered, draw=orange, fill=lightorange!40,
+        drop shadow, line width=1.2pt, font=\bfseries
+    },
+    service/.style={
+        rectangle, rounded corners,
+        minimum width=3.2cm, minimum height=1cm,
+        text centered, draw=primaryblue, fill=secondaryblue!20,
+        drop shadow, line width=1pt
+    },
+    dlmodule/.style={
+        rectangle, rounded corners,
+        minimum width=3.2cm, minimum height=0.8cm,
+        text centered, draw=purple, fill=lightpurple!30,
+        line width=1pt, font=\footnotesize
+    },
+    process/.style={
+        rectangle, rounded corners,
+        minimum width=2.5cm, minimum height=0.7cm,
+        text centered, draw=gray, fill=lightgray,
+        line width=0.8pt, font=\small
+    },
+    output/.style={
+        ellipse,
+        minimum width=2.5cm, minimum height=1cm,
+        text centered, draw=red, fill=red!20,
+        drop shadow, line width=1.2pt, font=\bfseries
+    },
+    arrow/.style={
+        -Stealth, line width=1.5pt, draw=darkblue
+    },
+    dataarrow/.style={
+        -Stealth, line width=1.2pt, draw=primaryblue, dashed
+    },
+    feedbackarrow/.style={
+        -Stealth, line width=1pt, draw=orange
+    },
+    container/.style={
+        rectangle, rounded corners=8pt,
+        draw=gray, line width=2pt,
+        fill=lightgray!20, inner sep=10pt
+    },
+    unified/.style={
+        rectangle, rounded corners=5pt,
+        minimum width=2.5cm, minimum height=0.7cm,
+        text centered, draw=primaryblue, fill=secondaryblue!15,
+        line width=1.2pt, font=\footnotesize
+    },
+    lora/.style={
+        rectangle, rounded corners=3pt,
+        minimum width=2.2cm, minimum height=0.6cm,
+        text centered, draw=purple, fill=lightpurple!20,
+        line width=0.8pt, font=\scriptsize
+    }
+}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{center}
+\Huge\textbf{KIẾN TRÚC HỆ THỐNG LEXILINGO v2.0}
+
+\Large AI Hỗ trợ Học Tiếng Anh - Optimized Architecture
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{tikzpicture}[node distance=1.5cm, scale=0.85, every node/.style={scale=0.85}]
+
+    % User Layer
+    \node[user] (user) {\faUser~Người dùng};
+    \node[below=0.1cm of user, text=darkblue, font=\small\itshape] {Voice / Text};
+    
+    % Frontend Layer
+    \node[frontend, below=0.9cm of user] (frontend) {\faDesktop~Frontend};
+    \node[below=0.05cm of frontend, font=\tiny] {Flutter (Mobile/Web)};
+    
+    % API Gateway
+    \node[gateway, below=0.9cm of frontend] (gateway) {API Gateway};
+    
+    % Left Branch: STT + Context
+    \node[service, below left=1.8cm and 6cm of gateway] (stt) {\faMicrophone~STT};
+    \node[below=0.05cm of stt, font=\tiny] {Faster-Whisper v3};
+    
+    \node[process, below=0.8cm of stt] (context) {Context Manager};
+    \node[below=0.05cm of context, font=\tiny] {MiniLM-L6 + Redis};
+    
+    % Pronunciation (parallel)
+    \node[dlmodule, below=0.8cm of context] (pronunciation) {HuBERT};
+    \node[below=0.05cm of pronunciation, font=\tiny] {Pronunciation (Parallel)};
+    
+    % Center: Orchestrator
+    \node[gateway, below right=1.8cm and 1cm of gateway, minimum width=4.5cm, minimum height=1.4cm] (orchestrator) {\faCogs~ORCHESTRATOR};
+    \node[below=0.05cm of orchestrator, font=\tiny] {Core Engine - Task Routing};
+    
+    % Qwen + Unified LoRA
+    \node[service, below=1.5cm of orchestrator] (qwen) {\faBrain~Qwen2.5-1.5B};
+    \node[below=0.05cm of qwen, font=\tiny] {Base Model (1.6GB)};
+    
+    \node[unified, below=0.8cm of qwen, minimum width=4.5cm] (unified) {Unified LoRA Adapter};
+    \node[below=0.05cm of unified, font=\tiny] {r=48, Multi-Task (80MB)};
+    
+    % 4 Tasks in unified adapter
+    \node[lora, below left=1cm and 1.8cm of unified, minimum width=2cm] (task1) {\tiny Fluency};
+    \node[lora, below left=1cm and 0.3cm of unified, minimum width=2cm] (task2) {\tiny Grammar};
+    \node[lora, below right=1cm and 0.3cm of unified, minimum width=2cm] (task3) {\tiny Vocab};
+    \node[lora, below right=1cm and 1.8cm of unified, minimum width=2cm] (task4) {\tiny Dialogue};
+    
+    % LLaMA3-VI (lazy load)
+    \node[service, below right=1.8cm and 5.5cm of gateway, minimum width=4cm] (llama) {\faLanguage~LLaMA3-8B-VI};
+    \node[below=0.05cm of llama, font=\tiny, align=center] {Lazy Load (8GB)\\Vietnamese Explanation};
+    
+    % Fusion Layer
+    \node[process, below=3.5cm of unified, minimum width=5.5cm] (fusion) {\faCodeBranch~Attention Fusion};
+    \node[below=0.05cm of fusion, font=\tiny] {Cross-Attention Layer};
+    
+    % TTS
+    \node[service, below=1cm of fusion] (tts) {\faVolumeUp~TTS};
+    \node[below=0.05cm of tts, font=\tiny] {Piper VITS};
+    
+    % Output
+    \node[output, below=0.6cm of tts] (output) {\faStar~Response};
+    
+    % Main Flow Arrows
+    \draw[arrow] (user) -- (frontend);
+    \draw[arrow] (frontend) -- (gateway);
+    \draw[arrow] (gateway) -- node[left, font=\tiny] {audio} (stt);
+    \draw[arrow] (gateway) -- node[above, font=\tiny] {text} (orchestrator);
+    
+    % STT Branch
+    \draw[arrow] (stt) -- (context);
+    \draw[arrow] (context) -- (pronunciation);
+    \draw[dataarrow] (context.east) -- ++(0.8,0) |- (orchestrator.west);
+    
+    % Orchestrator to Models
+    \draw[arrow] (orchestrator) -- (qwen);
+    \draw[arrow] (qwen) -- (unified);
+    \draw[dataarrow] (unified) -| (task1);
+    \draw[dataarrow] (unified) -| (task2);
+    \draw[dataarrow] (unified) -| (task3);
+    \draw[dataarrow] (unified) -| (task4);
+    
+    % Conditional LLaMA3-VI
+    \draw[dataarrow, dashed] (orchestrator) -- node[above, font=\tiny, align=center] {if needed\\(A2/low conf)} (llama);
+    
+    % To Fusion
+    \draw[feedbackarrow] (task1) |- (fusion);
+    \draw[feedbackarrow] (task2) |- (fusion);
+    \draw[feedbackarrow] (task3) |- (fusion);
+    \draw[feedbackarrow] (task4) |- (fusion);
+    \draw[feedbackarrow] (pronunciation) -- ++(0.5,0) |- (fusion.west);
+    \draw[feedbackarrow] (llama) |- (fusion.east);
+    
+    % Final Flow
+    \draw[arrow] (fusion) -- (tts);
+    \draw[arrow] (tts) -- (output);
+    \draw[feedbackarrow, bend left=35] (output.east) to node[right, font=\tiny] {feedback} (frontend.east);
+    
+    % Background Containers
+    \begin{pgfonlayer}{background}
+        \node[container, fit=(stt)(context)(pronunciation), 
+              label=above:\textbf{STT \& Context}] {};
+        \node[container, fit=(orchestrator)(qwen)(unified)(task1)(task2)(task3)(task4), 
+              label=above:\textbf{NLP Engine (Unified)}] {};
+        \node[container, fit=(llama), 
+              label=above:\textbf{Optional VI}] {};
+        \node[container, fit=(fusion)(tts), 
+              label=above:\textbf{Fusion \& TTS}] {};
+    \end{pgfonlayer}
+    
+    % Legend
+    \node[right=7cm of orchestrator, font=\small\bfseries] (legend) {LEGEND:};
+    \node[below=0.3cm of legend, text width=4cm, font=\small, align=left] {
+        \textcolor{darkblue}{\rule{0.8cm}{2pt}} Main flow\\
+        \textcolor{primaryblue}{- - - -} Data\\
+        \textcolor{orange}{\rule{0.8cm}{1pt}} Feedback
+    };
+    
+    % Model Info
+    \node[below=1.5cm of legend, draw=purple, rounded corners, fill=lightpurple!10, 
+          text width=4cm, font=\footnotesize, align=left, inner sep=5pt] {
+        \textbf{MODELS v2.0:}\\
+        \textbf{STT:} Faster-Whisper\\
+        • 244MB, <100ms\\
+        \textbf{Context:} MiniLM-L6\\
+        • 22MB, ~15ms\\
+        \textbf{NLP:} Qwen2.5-1.5B\\
+        • Base: 1.6GB\\
+        • Unified LoRA: 80MB\\
+        • All tasks: 100-150ms\\
+        \textbf{VI:} LLaMA3-8B (lazy)\\
+        • 8GB, load on demand\\
+        \textbf{Pronunciation:} HuBERT\\
+        • 960MB, parallel\\
+        \textbf{TTS:} Piper VITS\\
+        • 30-60MB
+    };
+    
+    % Improvements
+    \node[below=0.3cm of legend, draw=green, rounded corners, fill=lightgreen!10,
+          text width=4cm, font=\footnotesize, align=left, inner sep=5pt,
+          xshift=0cm, yshift=-9.5cm] {
+        \textbf{IMPROVEMENTS:}\\
+        $\checkmark$ Latency: -56\% (350ms)\\
+        $\checkmark$ Memory: -60\% (4.8GB)\\
+        $\checkmark$ Cache hit: 45\%\\
+        $\checkmark$ Switching: <1ms\\
+        $\checkmark$ Lazy loading enabled
+    };
+    
+\end{tikzpicture}
+
+\clearpage
+
+% Page 2: 5-Layer Architecture
+\begin{center}
+\Huge\textbf{KIẾN TRÚC 5 TẦNG}
+
+\Large Phân tầng chi tiết hệ thống
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{tikzpicture}[node distance=0.5cm, scale=0.72, every node/.style={scale=0.72}]
+
+    % Draw all containers on background layer first
+    \begin{scope}[on background layer]
+        \node[container, minimum width=19cm, minimum height=1.8cm] (layer1) {};
+        \node[container, minimum width=19cm, minimum height=1.8cm, below=1.2cm of layer1] (layer2) {};
+        \node[container, minimum width=19cm, minimum height=2.8cm, below=1.2cm of layer2] (layer3) {};
+        \node[container, minimum width=19cm, minimum height=3.2cm, below=1.2cm of layer3] (layer4) {};
+        \node[container, minimum width=19cm, minimum height=1.8cm, below=0.7cm of layer4] (layer5) {};
+    \end{scope}
+    
+    % Layer 1: Presentation
+    \node[above right=0.1cm of layer1.north west, font=\large\bfseries, text=darkblue] 
+        {1. PRESENTATION LAYER};
+    
+    \node[frontend] (mobile) at ([xshift=2.5cm, yshift=-0.9cm]layer1.north west) {\faMobile~Mobile App};
+    \node[frontend, right=0.5cm of mobile] (web) {\faGlobe~Web App};
+    \node[process, right=0.5cm of web] (websocket) {\faPlug~WebSocket};
+    
+    % Layer 2: API
+    \node[above right=0.1cm of layer2.north west, font=\large\bfseries, text=orange] 
+        {2. API GATEWAY LAYER};
+    
+    \node[gateway] (restapi) at ([xshift=2.5cm, yshift=-0.9cm]layer2.north west) {\faServer~REST API};
+    \node[gateway, right=0.5cm of restapi] (graphql) {\faProjectDiagram~GraphQL};
+    \node[process, right=0.5cm of graphql] (auth) {\faLock~Auth/JWT};
+    
+    % Layer 3: Services
+    \node[above right=0.1cm of layer3.north west, font=\large\bfseries, text=primaryblue] 
+        {3. MICROSERVICES LAYER};
+    
+    \node[service] (sttserv) at ([xshift=2.5cm, yshift=-1cm]layer3.north west) {STT Service};
+    \node[service, right=0.5cm of sttserv] (nlpserv) {NLP Service};
+    \node[service, right=0.5cm of nlpserv] (ttsserv) {TTS Service};
+    \node[service, below=0.4cm of sttserv] (userserv) {User Service};
+    \node[service, right=0.5cm of userserv] (analyticsserv) {Analytics};
+    
+    % Layer 4: AI Models
+    \node[above right=0.1cm of layer4.north west, font=\large\bfseries, text=purple] 
+        {4. AI/ML MODEL LAYER};
+    
+    \node[dlmodule] (whisper) at ([xshift=1.8cm, yshift=-1cm]layer4.north west) {Whisper v3};
+    \node[dlmodule, right=0.4cm of whisper] (qwen) {Qwen2.5-1.5B};
+    \node[dlmodule, right=0.4cm of qwen] (hubert) {HuBERT-large};
+    \node[dlmodule, right=0.4cm of hubert] (piper) {Piper TTS};
+    \node[dlmodule, below=0.4cm of whisper] (lora1) {Fluency LoRA};
+    \node[dlmodule, right=0.4cm of lora1] (lora2) {Vocab LoRA};
+    \node[dlmodule, right=0.4cm of lora2] (lora3) {Grammar LoRA};
+    \node[dlmodule, right=0.4cm of lora3] (lora4) {Dialogue LoRA};
+    
+    % Layer 5: Data
+    \node[above right=0.1cm of layer5.north west, font=\large\bfseries, text=green] 
+        {5. DATA LAYER};
+    
+    \node[process] (postgres) at ([xshift=2.5cm, yshift=-0.9cm]layer5.north west) {\faDatabase~PostgreSQL};
+    \node[process, right=0.5cm of postgres] (redis) {\faMemory~Redis Cache};
+    \node[process, right=0.5cm of redis] (s3) {\faCloud~S3 Storage};
+    \node[process, right=0.5cm of s3] (mongo) {\faLeaf~MongoDB};
+    
+    % Connections removed to avoid text overlapping
+    
+\end{tikzpicture}
+
+\clearpage
+
+% Page 3: Unified NLP Engine Detail với Architecture v2.0
+\begin{center}
+\Huge\textbf{UNIFIED NLP ENGINE v2.0}
+
+\Large Kiến trúc Multi-Task Optimized
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{tikzpicture}[node distance=0.9cm, scale=0.8, every node/.style={scale=0.8}]
+
+    % Input layer
+    \node[process, minimum width=10cm] (input) {\faKeyboard~User Input};
+    \node[below=0.05cm of input, font=\tiny] {Text (from STT or keyboard)};
+    
+    % Context Manager
+    \node[service, below=1cm of input, minimum width=10cm] (contextmgr) {Context Manager};
+    \node[below=0.05cm of contextmgr, font=\tiny] {MiniLM-L6 (22MB) + Redis Cache + History};
+    
+    % Orchestrator - Core
+    \node[gateway, below=1.1cm of contextmgr, minimum width=11cm, minimum height=2cm] (orchestrator) {};
+    \node[above=0.05cm of orchestrator.north, font=\Large\bfseries, text=orange] {ORCHESTRATOR};
+    
+    \node[process, minimum width=9cm] at ([yshift=0.35cm]orchestrator.center) (taskanalysis) {Task Analysis \& Routing};
+    \node[process, minimum width=9cm, below=0.35cm of taskanalysis] (resource) {Resource Allocation};
+    \node[below=0.05cm of resource, font=\tiny, align=center] {Lazy Loading • Parallel Execution • Error Handling};
+    
+    % Left: Qwen + Unified LoRA
+    \node[service, below left=1.8cm and 4cm of orchestrator, minimum width=5cm, minimum height=2.3cm] (qwenbox) {};
+    \node[above=0.05cm of qwenbox.north, font=\large\bfseries, text=primaryblue] {Qwen2.5-1.5B};
+    
+    \node[unified, minimum width=4.2cm] at ([yshift=0.25cm]qwenbox.center) (basemodel) {Base Model};
+    \node[below=0.05cm of basemodel, font=\tiny] {1.6GB (Always loaded)};
+    
+    \node[unified, minimum width=4.2cm, below=0.6cm of basemodel] (unified) {Unified LoRA};
+    \node[below=0.05cm of unified, font=\tiny] {r=48, $\alpha$=96 (80MB)};
+    
+    % 4 tasks in unified
+    \node[below=1cm of qwenbox, font=\small, text=purple] (tasks) {4 Tasks:};
+    \node[lora, below=0.25cm of tasks, minimum width=2.2cm] (t1) {\tiny Fluency};
+    \node[lora, right=0.15cm of t1, minimum width=2.2cm] (t2) {\tiny Grammar};
+    \node[lora, below=0.25cm of t1, minimum width=2.2cm] (t3) {\tiny Vocab};
+    \node[lora, right=0.15cm of t3, minimum width=2.2cm] (t4) {\tiny Dialogue};
+    
+    % Right: LLaMA3-VI
+    \node[service, below right=1.8cm and 4cm of orchestrator, minimum width=5cm, minimum height=2.3cm] (llamabox) {};
+    \node[above=0.05cm of llamabox.north, font=\large\bfseries, text=green] {LLaMA3-8B-VI};
+    
+    \node[process, minimum width=4.5cm] at ([yshift=0.3cm]llamabox.center) (trigger) {Trigger Conditions:};
+    \node[below=0.05cm of trigger, font=\tiny, align=center] {• confidence < 0.8\\• level == "A2"\\• VI request};
+    
+    \node[unified, minimum width=4.5cm, below=0.7cm of trigger] (llamodel) {Vietnamese Model};
+    \node[below=0.05cm of llamodel, font=\tiny] {8GB (Lazy load)};
+    
+    % Center bottom: HuBERT (parallel)
+    \node[dlmodule, below=8cm of contextmgr, minimum width=4cm] (hubert) {HuBERT-large};
+    \node[below=0.05cm of hubert, font=\tiny] {Pronunciation (Parallel)};
+    
+    % Fusion Layer
+    \node[service, below=1.8cm of hubert, minimum width=11cm, minimum height=1.7cm] (fusion) {};
+    \node[above=0.05cm of fusion.north, font=\Large\bfseries, text=purple] {ATTENTION FUSION};
+    
+    \node[process, minimum width=9cm] at (fusion.center) (crossatt) {Cross-Attention Layer};
+    \node[below=0.05cm of crossatt, font=\tiny] {w\_qwen=0.7, w\_llama=0.2, w\_context=0.1};
+    
+    % Output
+    \node[output, below=1.1cm of fusion, minimum width=4.5cm] (out) {\faStar~Multi-Task Output};
+    \node[below=0.05cm of out, font=\tiny] {Analysis + Response (EN + VI)};
+    
+    % Arrows
+    \draw[arrow] (input) -- (contextmgr);
+    \draw[arrow] (contextmgr) -- (orchestrator);
+    
+    % Orchestrator splits
+    \draw[arrow] (orchestrator) -| node[above left, font=\tiny] {primary} (qwenbox);
+    \draw[dataarrow, dashed] (orchestrator) -| node[above right, font=\tiny] {conditional} (llamabox);
+    \draw[dataarrow] (orchestrator) -- node[right, font=\tiny] {parallel} (hubert);
+    
+    % Qwen processing
+    \draw[dataarrow] (qwenbox) -- (t1);
+    \draw[dataarrow] (qwenbox) -- (t2);
+    \draw[dataarrow] (qwenbox) -- (t3);
+    \draw[dataarrow] (qwenbox) -- (t4);
+    
+    % To Fusion
+    \draw[feedbackarrow] (t1) |- ([yshift=0.5cm]fusion.west);
+    \draw[feedbackarrow] (t2) |- ([yshift=0.3cm]fusion.west);
+    \draw[feedbackarrow] (t3) |- ([yshift=-0.3cm]fusion.west);
+    \draw[feedbackarrow] (t4) |- ([yshift=-0.5cm]fusion.west);
+    \draw[feedbackarrow] (llamabox) |- ([yshift=0.3cm]fusion.east);
+    \draw[feedbackarrow] (hubert) -- (fusion);
+    
+    % Final
+    \draw[arrow] (fusion) -- (out);
+    
+    % Info boxes
+    \node[right=1cm of qwenbox, draw=primaryblue, rounded corners, fill=secondaryblue!10, 
+          text width=4.8cm, font=\footnotesize, align=left, inner sep=5pt] (advantages) {
+        \textbf{UNIFIED ADAPTER:}\\
+        $\checkmark$ \textbf{Memory:} 80MB vs 4$\times$151MB\\
+        ~~~~(giảm 87\%)\\
+        $\checkmark$ \textbf{Speed:} <1ms switching\\
+        ~~~~(vs 2-5s reload)\\
+        $\checkmark$ \textbf{Latency:} 100-150ms\\
+        ~~~~all 4 tasks\\
+        $\checkmark$ \textbf{Consistency:} Shared\\
+        ~~~~base embeddings\\
+        $\checkmark$ \textbf{Scalable:} Add task =\\
+        ~~~~add 1 LoRA only
+    };
+    
+    \node[below=0.4cm of advantages, draw=green, rounded corners, fill=lightgreen!10, 
+          text width=4.8cm, font=\footnotesize, align=left, inner sep=5pt] {
+        \textbf{LAZY LOADING:}\\
+        • Qwen: Always (1.6GB)\\
+        • Unified LoRA: On-demand\\
+        • LLaMA3-VI: Only if needed\\
+        ~~~~(confidence < 0.8)\\
+        • HuBERT: Voice input only\\
+        \\
+        \textbf{Memory Savings:}\\
+        Baseline: 12GB → 4.8GB\\
+        (60\% reduction)
+    };
+    
+    \node[below=0.4cm of llamabox, draw=orange, rounded corners, fill=lightorange!10,
+          text width=4.8cm, font=\footnotesize, align=left, inner sep=5pt] {
+        \textbf{ORCHESTRATOR LOGIC:}\\
+        1. Analyze task complexity\\
+        2. Check learner level\\
+        3. Allocate resources\\
+        4. Execute parallel/sequential\\
+        5. Handle errors/fallback\\
+        6. Aggregate results\\
+        \\
+        \textbf{Performance:}\\
+        • Avg latency: 350ms\\
+        • Cache hit: 45\%\\
+        • Uptime: 99.5\%
+    };
+    
+\end{tikzpicture}
+
+\end{document}

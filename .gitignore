@@ -1,0 +1,71 @@
+# Model files (too large for GitHub)
+*.safetensors
+*.pt
+*.bin
+*.pth
+*.ckpt
+
+# Large tokenizer files
+model/adapters/*/tokenizer.json
+model/outputs/*/tokenizer.json
+model/
+# Output directories
+model/outputs/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Keep README files in model directories
+!model/**/README.md
+
+# Data files
+datasets/
+data/
