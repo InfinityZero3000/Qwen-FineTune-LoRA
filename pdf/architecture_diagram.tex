@@ -1,8 +1,9 @@
 \documentclass[tikz,border=5pt]{standalone}
-\usepackage[utf8]{vietnam}
-\usepackage{fontawesome5}
-\usepackage{amsmath}
-\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, shadows, shapes.multipart}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+% FontAwesome5 requires LuaLaTeX or XeLaTeX - using text fallback
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, shadows, shapes.multipart, shapes.symbols}
 
 % --- Academic Color Palette (Professional & Clean) ---
 \definecolor{navy}{RGB}{0, 48, 73}
@@ -76,8 +77,8 @@
 % =================================================================================
 % 1. INPUT LAYER
 % =================================================================================
-\node[io] (input_voice) {\faMicrophone\ Audio Stream};
-\node[io, right=0.5cm of input_voice] (input_text) {\faKeyboard\ Text Input};
+\node[io] (input_voice) {$\bigcirc$ Audio Stream};
+\node[io, right=0.5cm of input_voice] (input_text) {$\boxed{\text{T}}$ Text Input};
 
 % =================================================================================
 % 2. PRE-PROCESSING LAYER (STT)
@@ -130,7 +131,7 @@
 
 % Main Model
 \node[model, below=1.5cm of orchestrator, xshift=-2.2cm, text width=3cm] (qwen) {
-    \faBrain\ \textbf{NLP Core}\\
+    $\bigstar$ \textbf{NLP Core}\\
     Qwen2.5-1.5B\\
     \textit{+ Unified LoRA}\\
     \scalebox{0.7}{(Fluency, Vocab, Grammar)}
@@ -138,7 +139,7 @@
 
 % Parallel Model
 \node[model, right=1.0cm of qwen, text width=3cm] (hubert) {
-    \faWaveSquare\ \textbf{Pronunciation}\\
+    $\sim$ \textbf{Pronunciation}\\
     HuBERT-Large\\
     \textit{Forced Alignment}\\
     \scalebox{0.7}{(Phoneme Level Analysis)}
@@ -146,7 +147,7 @@
 
 % Secondary Model (Lazy)
 \node[model, below=0.6cm of qwen, dashed, draw=gray, text=gray, fill=white, text width=3cm] (llama) {
-    \faLanguage\ \textbf{Explanation (VI)}\\
+    $\mathcal{L}$ \textbf{Explanation (VI)}\\
     LLaMA3-8B\\
     \scalebox{0.7}{\textit{Lazy Load (Conditional)}}
 };
@@ -195,8 +196,8 @@
     Piper VITS (On-device)
 };
 
-\node[io, below=0.5cm of tts] (output) {\faVolumeUp\ Audio Response};
-\node[io, right=0.5cm of output] (json) {\faCode\ JSON Stream};
+\node[io, below=0.5cm of tts] (output) {$\triangleright$ Audio Response};
+\node[io, right=0.5cm of output] (json) {$\langle\rangle$ JSON Stream};
 
 % Connections
 \draw[->] (strategy) -- (tts);

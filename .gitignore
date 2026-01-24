@@ -39,6 +39,8 @@ venv/
 ENV/
 env/
 .venv
+.venv/bin
+.env
 
 # IDE
 .vscode/
@@ -69,3 +71,7 @@ Thumbs.db
 # Data files
 datasets/
 data/
+
+downloaded_datasets/
+kaggle_output/
+
