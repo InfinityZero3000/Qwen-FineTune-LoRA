@@ -1,113 +1,355 @@
-# LexiLingo DL Model Support
+# LexiLingo - Deep Learning Model Support
 
-Deep Learning infrastructure for LexiLingo - An AI-powered English learning platform featuring multi-task NLP, speech recognition, and intelligent task orchestration.
+## 🎯 Overview
 
-## Overview
+LexiLingo is a unified English learning assistant powered by **Qwen2.5-1.5B-Instruct** with **LoRA adapters**. The model supports **5 core tasks** through a single unified adapter:
 
-LexiLingo employs a unified architecture that combines multiple specialized models for comprehensive English language learning support. The system uses LoRA adapters for efficient multi-task learning while maintaining low memory footprint suitable for mobile deployment.
+1. **Fluency Scoring** - Đánh giá độ trôi chảy của câu (0.0-1.0)
+2. **Vocabulary Classification** - Phân loại mức độ từ vựng (A1-C2 CEFR)
+3. **Grammar Correction** - Sửa lỗi ngữ pháp
+4. **Dialogue Generation** - Tạo hội thoại tương tác
+5. **Grammar Explanation** (NEW) - Giải thích lỗi ngữ pháp bằng tiếng Việt
 
-## Technical Stack
+## 📊 Model Architecture
 
-### Core Technologies
-- **Framework**: PyTorch, Hugging Face Transformers
-- **Fine-tuning**: LoRA/QLoRA (Parameter-Efficient Fine-Tuning)
-- **Quantization**: 4-bit/8-bit GPTQ, GGUF (Q4_K_M)
-- **Inference**: llama.cpp, ONNX Runtime, Core ML
-- **Caching**: Redis (context management)
-- **Embeddings**: MiniLM-L6 (sentence embeddings)
+```
+Qwen2.5-1.5B-Instruct (Base Model)
+    ↓
+Unified LoRA Adapter (r=16, α=32)
+    ↓
+Task Router → 5 Tasks:
+    ├─ Fluency Scoring
+    ├─ Vocabulary Classification  
+    ├─ Grammar Correction
+    ├─ Dialogue Generation
+    └─ Grammar Explanation (NEW) ← Model đóng vai trò giáo viên
+```
 
-### Model Architecture
+## 🆕 What's New: Explanation Task
 
-#### NLP Models
-| Model | Parameters | Task | Quantization | Memory |
-|-------|------------|------|--------------|--------|
-| Qwen2.5-1.5B | 1.5B | Grammar, Vocabulary | Q4_K_M | ~900MB |
-| Qwen2.5-0.5B | 0.5B | Grammar, Vocabulary | Q4_K_M | ~300MB |
-| LLaMA3-8B-VI | 8B | Vietnamese Explanations | Q4_K_M | ~5GB |
-| MiniLM-L6 | 22M | Context Embedding | FP16 | ~22MB |
+**Added:** January 27, 2026
 
-**Unified LoRA Adapter**: Single adapter (r=48, α=96, 80MB) handles 4 tasks:
-- Fluency Scoring
-- Grammar Correction
-- Vocabulary Classification  
-- Dialogue Generation
+The new **Explanation Task** transforms the model into a **Vietnamese tutor** that:
+- Explains **WHY** a sentence is grammatically incorrect
+- Teaches the **correct form** and underlying **rules**
+- Uses **friendly, conversational Vietnamese** (not overly formal)
+- Builds **confidence** through encouraging explanations
 
-#### Speech Models
-| Model | Task | Size | Format |
-|-------|------|------|--------|
-| Faster-Whisper v3 | Speech-to-Text | 244MB | ONNX |
-| HuBERT-large | Pronunciation Assessment | 960MB | PyTorch |
-| Piper VITS | Text-to-Speech | 30-60MB | ONNX |
+### Example:
+```
+User: "Error: 'He go to school yesterday.' → Correct: 'He went to school yesterday.'"
 
-### Architecture Components
+Model: "Khi nói về hành động trong quá khứ (yesterday), động từ phải chia 
+ở thì quá khứ đơn. 'Go' là hiện tại, phải đổi thành 'went' nhé em."
+```
 
-**Orchestrator**: Intelligent task routing with lazy loading
-- Analyzes input complexity and learner level
-- Routes to appropriate model (Qwen vs LLaMA3-VI)
-- Manages parallel execution (HuBERT + Qwen)
-- Implements attention fusion layer
+See [EXPLANATION_TASK.md](docs/EXPLANATION_TASK.md) for full documentation.
 
-**Context Manager**: 
-- MiniLM-L6 embeddings for semantic search
-- Redis caching (45% cache hit rate)
-- Conversation history tracking
+## 📈 Training Data Statistics
 
-**Performance Metrics** (v2.0):
-- Average latency: 350ms (56% improvement)
-- Memory usage: 4.8GB (60% reduction)
-- Model switching: <1ms
-- Uptime: 99.5%
+### After Merging Explanation Task (v2.0):
+```
+Total Training Samples: 30,806
+Total Validation Samples: 1,618
 
-## Datasets
+Task Distribution:
+- dialogue:     6,649 samples (21.6%)
+- explanation:  3,926 samples (12.7%) ← NEW
+- fluency:      7,255 samples (23.6%)
+- grammar:      5,881 samples (19.1%)
+- vocabulary:   7,095 samples (23.0%)
+```
 
-### Grammar & Error Correction
-- **CoLA** (Corpus of Linguistic Acceptability): 10,657 sentences
-- **BEA-2019** (W&I+LOCNESS): 34,304 error-annotated sentences
-- **JFLEG**: 1,511 grammatically corrected sentences
-- **C4_200M**: Web-crawled English corpus (grammar patterns)
+### Original Dataset (v1.0):
+```
+Total Training Samples: 26,880
+- dialogue:    6,649 samples (24.7%)
+- fluency:     7,255 samples (27.0%)
+- grammar:     5,881 samples (21.9%)
+- vocabulary:  7,095 samples (26.4%)
+```
 
-### Vocabulary & CEFR
-- **WordNet 3.1**: Lexical database with definitions
-- **Cambridge CEFR**: A2/B1/B2 vocabulary classification
-- **Custom**: 15,000+ word-definition pairs with examples
+## 🗂️ Project Structure
 
-### Dialogue & Conversation
-- **DailyDialog**: 13,118 multi-turn conversations
-- **Persona-Chat**: 162,064 persona-based dialogues
-- **EmpatheticDialogues**: 24,850 emotional conversations
+```
+DL-Model-Support/
+├── config/                      # Configuration files
+│   ├── llm_config.yaml         # LLM settings
+│   ├── stt_config.yaml         # Speech-to-text
+│   └── tts_config.yaml         # Text-to-speech
+│
+├── datasets/
+│   ├── cefr/
+│   │   └── ENGLISH_CERF_WORDS.csv        # 2,332 CEFR words (A1-C2)
+│   ├── datasets/
+│   │   ├── dialogue_data.json            # 6,649 dialogue samples
+│   │   ├── fluency_data.json             # 7,255 fluency samples
+│   │   ├── grammar_data.json             # 5,881 grammar samples
+│   │   ├── vocabulary_data.json          # 7,095 vocabulary samples
+│   │   ├── vietnamese_explanations.json  # 4,869 explanation samples (NEW)
+│   │   ├── train.jsonl                   # Original 26,880 samples
+│   │   ├── val.jsonl                     # Original 1,412 samples
+│   │   ├── train_with_explanation.jsonl  # NEW: 30,806 samples
+│   │   └── val_with_explanation.jsonl    # NEW: 1,618 samples
+│   └── wi+locness/              # Wi+locness grammar corpus
+│
+├── docs/
+│   ├── EXPLANATION_TASK.md              # NEW: Explanation task documentation
+│   ├── Training_Optimization_Guide.md
+│   └── Optimization_Summary.md
+│
+├── model/
+│   ├── adapters/
+│   │   ├── dialogue_lora_adapter/
+│   │   ├── fluency_lora_adapter/
+│   │   ├── grammar_lora_adapter/
+│   │   └── vocabulary_lora_adapter/
+│   └── outputs/                 # Training outputs
+│
+├── scripts/
+│   ├── crawl_cefr_words.py              # Generate CEFR vocabulary
+│   ├── merge_explanation_data.py         # NEW: Merge explanation data
+│   ├── finetune_qwen_lora_kaggle.v1.0.ipynb  # Kaggle training notebook
+│   └── finetune_qwen_lora.v3.0.ipynb    # Local training notebook
+│
+├── check_datasets.py            # Dataset analysis tool
+├── DATASET_ANALYSIS_REPORT.md   # Dataset comparison report
+└── README.md                    # This file
+```
 
-### Speech & Pronunciation
-- **LibriSpeech**: 1,000 hours clean English speech
-- **Common Voice**: Multi-accent English corpus
-- **TIMIT**: Phonetic speech corpus for assessment
+## 🚀 Quick Start
 
-## Deployment
+### 1. Setup Environment
+```bash
+# Clone repository
+git clone https://github.com/InfinityZero3000/LexiLingo.git
+cd LexiLingo/DL-Model-Support
 
-### Export Formats
-- **GGUF**: Android/iOS via llama.cpp (cross-platform)
-- **Core ML**: iOS Neural Engine acceleration
-- **ONNX**: General inference engines
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate   # Windows
 
-### Hardware Requirements
+# Install dependencies
+pip install -r requirements.txt
+```
 
-**Training**:
-- Minimum: 16GB RAM, GPU 8GB VRAM (RTX 3060)
-- Recommended: 32GB RAM, GPU 12GB+ VRAM (RTX 3080+)
+### 2. Prepare Data with Explanation Task
+```bash
+# Merge explanation data into training set
+python scripts/merge_explanation_data.py
 
-**Mobile Inference**:
-- iOS: A14+ chip, 4GB+ RAM
-- Android: Snapdragon 8 Gen 1+, 4GB+ RAM
+# Check merge results
+cat datasets/datasets/merge_explanation_report.json
+```
 
-## Documentation
+### 3. Train Model
 
-- [Architecture Overview](docs/architecture.md) - Detailed system design
-- [Architecture Diagrams](pdf/architecture_diagram.pdf) - Visual architecture
-- [References](pdf/References.pdf) - Research papers and datasets
-- [Performance Metrics](docs/Thông%20số%20đánh%20giá.md) - Benchmarks
+#### Option A: Kaggle (Recommended for Free GPU)
+```bash
+# Upload to Kaggle:
+# 1. Create new notebook
+# 2. Upload finetune_qwen_lora_kaggle.v1.0.ipynb
+# 3. Add dataset: train_with_explanation.jsonl + val_with_explanation.jsonl
+# 4. Enable GPU (P100 or T4)
+# 5. Enable Internet
+# 6. Run all cells
+```
 
-## License
+#### Option B: Local Training
+```bash
+# Open Jupyter notebook
+jupyter notebook scripts/finetune_qwen_lora.v3.0.ipynb
 
-This project contains model configurations and training scripts. Pre-trained models are subject to their respective licenses:
-- Qwen2.5: Apache 2.0
-- LLaMA3: Meta License
-- Whisper: MIT License
+# Or run directly
+python scripts/train_unified_model.py
+```
+
+## 📝 Dataset Management
+
+### Generate/Update CEFR Vocabulary
+```bash
+python scripts/crawl_cefr_words.py
+# Output: datasets/cefr/ENGLISH_CERF_WORDS.csv (2,332 words)
+```
+
+### Merge Explanation Task
+```bash
+python scripts/merge_explanation_data.py
+
+# Parameters (edit in script):
+# - quality_threshold: 50 (minimum quality score)
+# - val_split_ratio: 0.05 (5% for validation)
+```
+
+### Analyze Dataset
+```bash
+python check_datasets.py
+
+# Shows:
+# - Task distribution
+# - Sample counts
+# - Data format validation
+```
+
+## 🎓 Task Descriptions
+
+### 1. Fluency Scoring
+Đánh giá độ tự nhiên và trôi chảy của câu tiếng Anh (0.0-1.0)
+
+**Example:**
+```
+Input: "The cat sits on the mat."
+Output: "Fluency Score: 0.95"
+```
+
+### 2. Vocabulary Classification
+Phân loại độ khó từ vựng theo CEFR (A1-C2)
+
+**Example:**
+```
+Input: "Classify: sophisticated"
+Output: "Vocabulary Level: C2"
+```
+
+### 3. Grammar Correction
+Sửa lỗi ngữ pháp trong câu
+
+**Example:**
+```
+Input: "He go to school yesterday."
+Output: "He went to school yesterday."
+```
+
+### 4. Dialogue Generation
+Tạo hội thoại tự nhiên, hỗ trợ học viên
+
+**Example:**
+```
+Input: "User: What's the weather like?"
+Output: "I'd be happy to help, but I don't have access to real-time data..."
+```
+
+### 5. Grammar Explanation (NEW)
+Giải thích lỗi ngữ pháp bằng tiếng Việt như một giáo viên
+
+**Example:**
+```
+Input: "Error: 'She have a car.' → Correct: 'She has a car.'"
+Output: "Với chủ ngữ số ít 'She' (ngôi thứ 3 số ít), động từ 'have' phải 
+chia thành 'has' trong thì hiện tại đơn nhé em. Quy tắc: He/She/It + has, 
+còn I/You/We/They + have."
+```
+
+## 🔧 Configuration
+
+### Training Hyperparameters
+```python
+# LoRA Configuration
+r = 16                    # LoRA rank
+lora_alpha = 32          # LoRA alpha
+lora_dropout = 0.05      # Dropout rate
+
+# Training Configuration
+batch_size = 4           # Per device
+gradient_accumulation = 4
+learning_rate = 2e-4
+num_epochs = 3
+warmup_ratio = 0.03
+
+# Quantization
+load_in_4bit = True      # 4-bit quantization
+bnb_4bit_quant_type = "nf4"
+```
+
+### Model Configuration
+```python
+MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
+MAX_SEQ_LENGTH = 2048
+TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", 
+                  "gate_proj", "up_proj", "down_proj"]
+```
+
+## 📊 Performance Metrics
+
+### Expected Results (After Full Training):
+
+| Task | Metric | Target |
+|------|--------|--------|
+| Fluency | MAE | < 0.15 |
+| Vocabulary | Accuracy | > 85% |
+| Grammar | BLEU | > 0.70 |
+| Dialogue | Perplexity | < 10.0 |
+| Explanation | Human Eval | > 80% satisfaction |
+
+## 🐛 Troubleshooting
+
+### Issue: Out of Memory (OOM)
+```bash
+# Reduce batch size
+batch_size = 2
+gradient_accumulation = 8
+
+# Or use gradient checkpointing
+gradient_checkpointing = True
+```
+
+### Issue: Dataset Not Found
+```bash
+# Check paths
+ls -la datasets/datasets/train_with_explanation.jsonl
+
+# Re-run merge if needed
+python scripts/merge_explanation_data.py
+```
+
+### Issue: Quality Threshold Too High
+```bash
+# Edit merge_explanation_data.py
+quality_threshold = 40  # Lower threshold
+
+# Re-merge
+python scripts/merge_explanation_data.py
+```
+
+## 📚 Documentation
+
+- [Explanation Task Documentation](docs/EXPLANATION_TASK.md)
+- [Training Optimization Guide](docs/Training_Optimization_Guide.md)
+- [Dataset Analysis Report](DATASET_ANALYSIS_REPORT.md)
+- [Architecture Diagram](architecture.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is part of the LexiLingo ecosystem.
+
+## 👥 Team
+
+- **Development:** LexiLingo Team
+- **Contact:** [GitHub Repository](https://github.com/InfinityZero3000/LexiLingo)
+
+## 🔮 Roadmap
+
+- [x] Unified LoRA adapter for 4 tasks
+- [x] CEFR vocabulary integration (2,332 words)
+- [x] Wi+locness grammar corpus
+- [x] Grammar Explanation task (Vietnamese tutor)
+- [ ] Real-time inference API
+- [ ] Mobile model export (ONNX)
+- [ ] Multi-language explanation support
+- [ ] Advanced error type classification
+- [ ] Difficulty-based task routing (A1-C2)
+
+---
+
+**Last Updated:** January 27, 2026  
+**Version:** 2.0 (with Explanation Task)  
+**Model:** Qwen2.5-1.5B-Instruct + Unified LoRA
