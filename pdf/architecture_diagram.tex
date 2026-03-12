@@ -1,0 +1,223 @@
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+% FontAwesome5 requires LuaLaTeX or XeLaTeX - using text fallback
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, shadows, shapes.multipart, shapes.symbols}
+
+% --- Academic Color Palette (Professional & Clean) ---
+\definecolor{navy}{RGB}{0, 48, 73}
+\definecolor{azure}{RGB}{234, 244, 244}
+\definecolor{slate}{RGB}{102, 155, 188}
+\definecolor{crimson}{RGB}{120, 0, 0}
+\definecolor{forest}{RGB}{0, 80, 0}
+\definecolor{paper}{RGB}{255, 255, 255}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    node distance=0.8cm and 0.5cm,
+    every node/.style={font=\sffamily\scriptsize},
+    >={Stealth[length=2mm, width=1.5mm]},
+    line width=0.6pt,
+    % Styles
+    entity/.style={
+        rectangle, 
+        draw=navy, 
+        fill=azure, 
+        text=navy,
+        align=center, 
+        rounded corners=1pt,
+        minimum height=0.7cm,
+        minimum width=2.0cm,
+        inner sep=4pt,
+        drop shadow={opacity=0.15, shadow xshift=1pt, shadow yshift=-1pt}
+    },
+    model/.style={
+        entity,
+        fill=slate!10,
+        draw=navy,
+        font=\sffamily\bfseries\scriptsize
+    },
+    db/.style={
+        cylinder, 
+        shape border rotate=90, 
+        aspect=0.2, 
+        draw=navy, 
+        fill=white,
+        align=center,
+        minimum height=0.8cm,
+        minimum width=1.2cm,
+        font=\scriptsize
+    },
+    io/.style={
+        trapezium, 
+        trapezium left angle=75, 
+        trapezium right angle=105, 
+        draw=navy, 
+        fill=white,
+        align=center,
+        inner sep=2pt,
+        font=\itshape\scriptsize
+    },
+    container/.style={
+        draw=gray!50, 
+        dashed, 
+        inner sep=8pt, 
+        rounded corners=4pt, 
+        fill=gray!5
+    },
+    labelstyle/.style={
+        font=\bfseries\tiny,
+        text=gray!90,
+        anchor=north west
+    }
+]
+
+% =================================================================================
+% 1. INPUT LAYER
+% =================================================================================
+\node[io] (input_voice) {$\bigcirc$ Audio Stream};
+\node[io, right=0.5cm of input_voice] (input_text) {$\boxed{\text{T}}$ Text Input};
+
+% =================================================================================
+% 2. PRE-PROCESSING LAYER (STT)
+% =================================================================================
+\node[entity, below=0.8cm of input_voice, text width=2.5cm, xshift=1cm] (stt) {
+    \textbf{ASR Module}\\[0.2em]
+    Faster-Whisper v3\\
+    \scalebox{0.8}{(Word Timestamps)}
+};
+
+% Connection Input -> STT
+\draw[->] (input_voice) -- (stt);
+\draw[->] (input_text) |- ($(stt.north) + (0.8, 0.3)$) -- ($(stt.north) + (0.8, 0)$);
+
+% =================================================================================
+% 3. CONTEXT MANAGEMENT LAYER
+% =================================================================================
+\node[entity, below=1.2cm of stt, text width=2.2cm] (encoder) {
+    \textbf{Context Encoder}\\
+    MiniLM-L6-v2\\
+    \scalebox{0.8}{($d=384$)}
+};
+
+\node[db, right=0.5cm of encoder] (redis) {Redis\\Cache};
+\node[db, right=0.3cm of redis] (kg) {Knowledge\\Graph};
+\node[db, left=0.5cm of encoder] (buffer) {History\\Buffer};
+
+% Group Context
+\node[container, fit=(encoder) (redis) (kg) (buffer)] (context_grp) {};
+\node[labelstyle] at (context_grp.north west) {III. CONTEXT \& STATE MANAGEMENT};
+
+% Connection STT -> Context
+\draw[->] (stt) -- node[midway, left, font=\tiny, align=right] {Raw Text \\ + Time} (encoder);
+
+% =================================================================================
+% 4. ORCHESTRATION LAYER
+% =================================================================================
+\node[entity, below=1.2cm of context_grp, text width=6cm, minimum height=0.8cm] (orchestrator) {
+    \textbf{ORCHESTRATOR ENGINE}\\[0.2em]
+    Task Analysis $\rightarrow$ Resource Allocation $\rightarrow$ Exec. Plan
+};
+\node[labelstyle] at ($(orchestrator.north west)+(0,0.3)$) {IV. ORCHESTRATION};
+
+% Connection Context -> Orchestrator
+\draw[->] (context_grp) -- node[midway, right, font=\tiny] {Context Vectors} (orchestrator);
+
+% =================================================================================
+% 5. CORE PROCESSING LAYER (AI MODELS)
+% =================================================================================
+
+% Main Model
+\node[model, below=1.5cm of orchestrator, xshift=-2.2cm, text width=3cm] (qwen) {
+    $\bigstar$ \textbf{NLP Core}\\
+    Qwen2.5-1.5B\\
+    \textit{+ Unified LoRA}\\
+    \scalebox{0.7}{(Fluency, Vocab, Grammar)}
+};
+
+% Parallel Model
+\node[model, right=1.0cm of qwen, text width=3cm] (hubert) {
+    $\sim$ \textbf{Pronunciation}\\
+    HuBERT-Large\\
+    \textit{Forced Alignment}\\
+    \scalebox{0.7}{(Phoneme Level Analysis)}
+};
+
+% Secondary Model (Lazy)
+\node[model, below=0.6cm of qwen, dashed, draw=gray, text=gray, fill=white, text width=3cm] (llama) {
+    $\mathcal{L}$ \textbf{Explanation (VI)}\\
+    LLaMA3-8B\\
+    \scalebox{0.7}{\textit{Lazy Load (Conditional)}}
+};
+
+% Group Models
+\node[container, fit=(qwen) (hubert) (llama)] (ai_grp) {};
+\node[labelstyle] at (ai_grp.north west) {V. NEURAL PROCESSING UNITS};
+
+% Connections Orchestrator -> Models
+\draw[->] (orchestrator.south) -| (qwen.north);
+\draw[->] (orchestrator.south) -| (hubert.north);
+\draw[->, gray, dashed] (qwen.south) -- node[midway, right, font=\tiny] {confidence $<$ $\tau$} (llama.north);
+
+% =================================================================================
+% 6. FUSION & SYNTHESIS LAYER
+% =================================================================================
+
+% Fusion Block
+\node[entity, below=1.0cm of llama, xshift=2cm, text width=5cm] (fusion) {
+    \textbf{Attention Fusion Mechanism}\\
+    $O = \text{LayerNorm}(Q + \text{Attn}(Q,K,V))$
+};
+
+% Strategy Block
+\node[entity, below=0.6cm of fusion, text width=4cm] (strategy) {
+    \textbf{Pedagogical Strategy}\\
+    (Praise / Correct / Drill)
+};
+
+% Group Output Processing
+\node[container, fit=(fusion) (strategy)] (synthesis_grp) {};
+\node[labelstyle] at (synthesis_grp.north west) {VI. FUSION \& STRATEGY};
+
+% Connections Models -> Fusion
+\draw[->] (qwen.east) -- ++(0.2,0) |- (fusion.west);
+\draw[->] (hubert.south) -- ++(0,-0.5) -| ($(fusion.north) + (1.5,0)$);
+\draw[->, gray, dashed] (llama.east) -- ++(0.2,0) |- ($(fusion.west)+(0,-0.3)$);
+
+\draw[->] (fusion) -- (strategy);
+
+% =================================================================================
+% 7. OUTPUT GENERATION
+% =================================================================================
+\node[entity, below=0.8cm of strategy, text width=3.5cm] (tts) {
+    \textbf{TTS Synthesis}\\
+    Piper VITS (On-device)
+};
+
+\node[io, below=0.5cm of tts] (output) {$\triangleright$ Audio Response};
+\node[io, right=0.5cm of output] (json) {$\langle\rangle$ JSON Stream};
+
+% Connections
+\draw[->] (strategy) -- (tts);
+\draw[->] (tts) -- (output);
+\draw[->] (strategy.east) -| ++(0.5,-1) |- (json.north);
+
+% =================================================================================
+% LEGEND
+% =================================================================================
+\node[draw=black!20, fill=white, rounded corners, inner sep=4pt, anchor=south east] at (synthesis_grp.east |- input_voice.north) {
+    \tiny
+    \textbf{Notation Legend}\\[2pt]
+    \begin{tikzpicture}
+        \node[entity, minimum width=0.5cm, minimum height=0.3cm, font=\tiny] (l1) {}; \node[right=0.1cm of l1] {Module};
+        \node[io, minimum width=0.5cm, minimum height=0.3cm, font=\tiny, below=0.3cm of l1] (l2) {}; \node[right=0.1cm of l2] {I/O};
+        \node[db, minimum width=0.4cm, minimum height=0.3cm, font=\tiny, below=0.3cm of l2] (l3) {}; \node[right=0.1cm of l3] {Data store};
+        \draw[->] ($(l3.south)+(0,-0.2)$) -- ++(0.5,0) node[right, font=\tiny] {Data Flow};
+        \draw[->, dashed] ($(l3.south)+(0,-0.4)$) -- ++(0.5,0) node[right, font=\tiny] {Conditional};
+    \end{tikzpicture}
+};
+
+\end{tikzpicture}
+\end{document}
