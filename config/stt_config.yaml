@@ -1,0 +1,158 @@
+# STT (Speech-to-Text) Configuration for LexiLingo
+# Primary: Whisper Small | Fast: Native API
+
+# =============================================================================
+# WHISPER SMALL Configuration
+# =============================================================================
+whisper:
+  model_name: "openai/whisper-small"
+  task: "transcribe"
+  language: "en"
+  
+  # Model variants
+  variants:
+    tiny:
+      name: "openai/whisper-tiny"
+      size_mb: 75
+      wer: 14.0
+      use_case: "real-time, low-resource"
+    
+    small:
+      name: "openai/whisper-small"
+      size_mb: 240
+      wer: 10.0
+      use_case: "balanced accuracy/speed"
+    
+    distil:
+      name: "distil-whisper/distil-small.en"
+      size_mb: 166
+      wer: 9.5
+      use_case: "optimized for English"
+  
+  # Fine-tuning Configuration
+  training:
+    output_dir: "./models/whisper-small-english"
+    num_train_epochs: 3
+    per_device_train_batch_size: 8
+    per_device_eval_batch_size: 8
+    gradient_accumulation_steps: 2
+    learning_rate: 1.0e-5
+    weight_decay: 0.01
+    warmup_steps: 500
+    logging_steps: 25
+    save_steps: 500
+    eval_steps: 500
+    fp16: true
+    predict_with_generate: true
+    generation_max_length: 225
+    
+    # Freeze encoder for faster training
+    freeze_encoder: true
+    freeze_encoder_epochs: 1
+  
+  # Audio Processing
+  audio:
+    sampling_rate: 16000
+    max_duration_seconds: 30
+    min_duration_seconds: 0.5
+    normalize: true
+    
+  # Feature extraction
+  feature_extractor:
+    feature_size: 80
+    sampling_rate: 16000
+    hop_length: 160
+    chunk_length: 30
+    n_fft: 400
+
+# =============================================================================
+# FASTER-WHISPER Configuration (Optimized inference)
+# =============================================================================
+faster_whisper:
+  model_size: "small"
+  device: "auto"  # cpu, cuda, or auto
+  compute_type: "int8"  # float16, int8, int8_float16
+  
+  # Inference settings
+  inference:
+    beam_size: 5
+    best_of: 5
+    patience: 1.0
+    length_penalty: 1.0
+    temperature: 0.0
+    compression_ratio_threshold: 2.4
+    log_prob_threshold: -1.0
+    no_speech_threshold: 0.6
+    condition_on_previous_text: true
+    
+  # VAD (Voice Activity Detection)
+  vad:
+    enabled: true
+    threshold: 0.5
+    min_speech_duration_ms: 250
+    min_silence_duration_ms: 100
+
+# =============================================================================
+# Ensemble STT Configuration
+# =============================================================================
+ensemble:
+  enabled: true
+  
+  # Models in ensemble
+  models:
+    - name: "whisper-tiny"
+      weight: 0.3
+      use_for: "fast_transcription"
+    - name: "whisper-small"
+      weight: 0.7
+      use_for: "accuracy"
+  
+  # Ensemble strategy
+  strategy: "confidence_weighted"  # confidence_weighted, voting, cascade
+  
+  # Cascade settings (if strategy is cascade)
+  cascade:
+    confidence_threshold: 0.8
+    fallback_model: "whisper-small"
+
+# =============================================================================
+# Pronunciation Assessment Configuration
+# =============================================================================
+pronunciation:
+  # Reference phonemes database
+  phoneme_model: "facebook/wav2vec2-lv-60-espeak-cv-ft"
+  
+  # Scoring weights
+  scoring:
+    accuracy_weight: 0.4
+    fluency_weight: 0.3
+    prosody_weight: 0.3
+  
+  # Error detection
+  error_types:
+    - "substitution"    # /θ/ → /s/
+    - "deletion"        # Missing sounds
+    - "insertion"       # Extra sounds
+    - "stress"          # Wrong stress
+    - "intonation"      # Wrong pitch pattern
+
+# =============================================================================
+# Export Configuration
+# =============================================================================
+export:
+  # Core ML for iOS
+  coreml:
+    model_type: "whisper"
+    compute_units: "ALL"
+    output_dir: "./models/exported/coreml/whisper"
+  
+  # ONNX for cross-platform
+  onnx:
+    opset_version: 17
+    optimize: true
+    output_dir: "./models/exported/onnx/whisper"
+  
+  # TensorFlow Lite for Android
+  tflite:
+    quantization: "dynamic"
+    output_dir: "./models/exported/tflite/whisper"

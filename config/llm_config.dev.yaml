@@ -1,0 +1,228 @@
+# Development Mode Configuration
+# Use larger models for best quality on Mac 32GB RAM
+# For production mobile deployment, use llm_config.yaml instead
+
+mode: development
+
+models:
+  # Grammar & Vocabulary Model - LARGE
+  grammar_model:
+    base_model: "Qwen/Qwen2.5-1.5B-Instruct"
+    model_size: "1.5B"
+    quantized_size: "900MB"  # Q4_K_M
+    ram_usage: "2GB"
+    
+    lora_config:
+      r: 32  # Larger LoRA rank for better quality
+      alpha: 64
+      dropout: 0.05
+      target_modules:
+        - "q_proj"
+        - "k_proj"
+        - "v_proj"
+        - "o_proj"
+        - "gate_proj"
+        - "up_proj"
+        - "down_proj"
+      bias: "none"
+      task_type: "CAUSAL_LM"
+    
+    training:
+      epochs: 5  # More epochs for dev
+      batch_size: 8  # Larger batch size
+      gradient_accumulation_steps: 2
+      learning_rate: 2e-4
+      warmup_ratio: 0.1
+      weight_decay: 0.01
+      max_seq_length: 768  # Longer sequences
+      use_fp16: true
+      use_4bit: true  # QLoRA
+    
+    prompt_templates:
+      grammar_correction: |
+        <|im_start|>system
+        You are an expert English grammar tutor with deep knowledge of English grammar rules, common mistakes, and teaching methods. Provide detailed corrections and explanations.
+        <|im_end|>
+        <|im_start|>user
+        Please correct this sentence and explain the grammar errors in detail:
+        "{input_text}"
+        <|im_end|>
+        <|im_start|>assistant
+        {output_text}<|im_end|>
+      
+      vocabulary_explanation: |
+        <|im_start|>system
+        You are an English vocabulary expert. Explain words with clear definitions, example sentences, common usage patterns, and related words.
+        <|im_end|>
+        <|im_start|>user
+        Explain the word or phrase: "{input_text}"
+        <|im_end|>
+        <|im_start|>assistant
+        {output_text}<|im_end|>
+
+  # Conversation Model - LARGE
+  conversation_model:
+    base_model: "meta-llama/Llama-3.2-1B-Instruct"
+    model_size: "1B"
+    quantized_size: "600MB"  # Q4_K_M
+    ram_usage: "1.5GB"
+    
+    lora_config:
+      r: 16  # Good balance
+      alpha: 32
+      dropout: 0.05
+      target_modules:
+        - "q_proj"
+        - "k_proj"
+        - "v_proj"
+        - "o_proj"
+        - "gate_proj"
+        - "up_proj"
+        - "down_proj"
+      bias: "none"
+      task_type: "CAUSAL_LM"
+    
+    training:
+      epochs: 7  # More training
+      batch_size: 12  # Larger batch
+      gradient_accumulation_steps: 1
+      learning_rate: 3e-4
+      warmup_ratio: 0.1
+      weight_decay: 0.01
+      max_seq_length: 512
+      use_fp16: true
+      use_4bit: false  # Full precision for 1B model
+    
+    prompt_templates:
+      conversation: |
+        <|begin_of_text|><|start_header_id|>system<|end_header_id|>
+        
+        You are a friendly, encouraging English language tutor. Help users practice conversational English with:
+        - Natural, engaging responses
+        - Gentle corrections when needed
+        - Helpful vocabulary and expressions
+        - Supportive and motivating tone
+        - Cultural context when relevant
+        
+        Keep responses conversational and not too long.<|eot_id|><|start_header_id|>user<|end_header_id|>
+        
+        {user_message}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+        
+        {assistant_message}<|eot_id|>
+
+# Hybrid Router Configuration
+router:
+  enable_cache: true
+  cache_size: 2000  # Larger cache for dev
+  
+  # Task classification thresholds
+  grammar_confidence_threshold: 0.7
+  vocabulary_confidence_threshold: 0.6
+  conversation_confidence_threshold: 0.5
+  
+  # Grammar task patterns
+  grammar_keywords:
+    - "correct"
+    - "fix"
+    - "grammar"
+    - "error"
+    - "mistake"
+    - "wrong"
+    - "check"
+    - "proofread"
+    - "edit"
+    - "revise"
+  
+  # Vocabulary task patterns
+  vocabulary_keywords:
+    - "meaning"
+    - "define"
+    - "definition"
+    - "word"
+    - "vocabulary"
+    - "synonym"
+    - "antonym"
+    - "explain"
+    - "what does"
+    - "what is"
+  
+  # Inference settings
+  generation:
+    grammar:
+      max_new_tokens: 384  # Longer explanations
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 50
+      repetition_penalty: 1.1
+    
+    conversation:
+      max_new_tokens: 256
+      temperature: 0.85  # More creative
+      top_p: 0.92
+      top_k: 50
+      repetition_penalty: 1.1
+
+# Export Configuration
+export:
+  output_dir: "./exports_dev"
+  
+  formats:
+    - "gguf"  # For llama.cpp testing
+  
+  quantization:
+    method: "F16"  # Keep full precision for development
+    
+  gguf:
+    available_quants:
+      - "F16"  # No quantization for dev quality
+      - "Q8_0"  # Optional light quantization
+    
+  validation:
+    run_tests: true
+    test_samples: 100
+    benchmark_speed: true
+    measure_perplexity: true
+
+# Dataset Configuration
+datasets:
+  grammar:
+    - name: "cola"
+      size: "full"  # Use full dataset in dev
+    - name: "bea2019"
+      size: "full"
+    - name: "jfleg"
+      size: "full"
+    - name: "c4_200m"
+      size: 100000  # 100k samples
+  
+  conversation:
+    - name: "daily_dialog"
+      size: "full"
+    - name: "persona_chat"
+      size: "full"
+    - name: "empathetic"
+      size: "full"
+
+# Logging
+logging:
+  level: "INFO"
+  log_dir: "./logs_dev"
+  tensorboard: true
+  wandb:
+    enabled: false  # Set to true if you want to use W&B
+    project: "lexilingo-dev"
+    entity: null
+
+# Hardware
+hardware:
+  device: "auto"  # Will use MPS on Mac
+  num_workers: 8
+  pin_memory: true
+  
+# Performance Targets (Development)
+performance_targets:
+  grammar_inference_speed: "50-100 tokens/sec"
+  conversation_inference_speed: "40-80 tokens/sec"
+  total_latency: "200-500ms"
+  max_memory: "7GB"
+  quality_threshold: 0.95  # Very high quality for dev

@@ -1,0 +1,617 @@
+\documentclass[11pt,a4paper]{article}
+
+% ===== PACKAGES =====
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+
+% ===== PAGE SETUP =====
+\geometry{margin=2cm}
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{15pt}
+\fancyhead[L]{\textbf{LexiLingo AI}}
+\fancyhead[R]{Tài Liệu Tham Khảo}
+\fancyfoot[C]{\thepage}
+
+% ===== COLORS =====
+\definecolor{primaryblue}{RGB}{66, 133, 244}
+\definecolor{secondarygreen}{RGB}{52, 168, 83}
+\definecolor{darkgray}{RGB}{95, 99, 104}
+\definecolor{lightgray}{RGB}{241, 243, 244}
+
+% ===== TITLE FORMATTING =====
+\titleformat{\section}{\Large\bfseries\color{primaryblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{darkgray}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{darkgray}}{\thesubsubsection}{1em}{}
+
+% ===== HYPERLINK SETUP =====
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=secondarygreen,
+    citecolor=primaryblue
+}
+
+% ===== DOCUMENT =====
+\begin{document}
+
+% ===== TITLE PAGE =====
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    
+    {\Huge\bfseries\color{primaryblue} LexiLingo AI\\[0.5cm]}
+    {\LARGE\color{darkgray} Tài Liệu Tham Khảo\\[0.3cm]}
+    {\large References \& Resources\\[2cm]}
+    
+    {\Large\faBook}\\[0.5cm]
+    {\large Comprehensive Reference Guide}
+    
+    \vfill
+    
+    {\large
+    \textbf{Version:} 2.0\\[0.3cm]
+    \textbf{Last Updated:} January 2026\\[0.3cm]
+    \textbf{Author:} Nguyen Huu Thang
+    }
+    
+    \vspace{1cm}
+\end{titlepage}
+
+% ===== TABLE OF CONTENTS =====
+\tableofcontents
+\newpage
+
+% ===== MAIN CONTENT =====
+\section{Language Models}
+
+\subsection{Large Language Models}
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Model} & \textbf{Paper/Link} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Model} & \textbf{Paper/Link} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{Qwen2.5} & 
+\href{https://github.com/QwenLM/Qwen2.5}{GitHub} | 
+\href{https://arxiv.org/abs/2309.16609}{Paper} & 
+Alibaba's multilingual LLM, strong on English \& code \\
+\hline
+
+\textbf{LLaMA 3} & 
+\href{https://llama.meta.com/}{Meta AI} | 
+\href{https://arxiv.org/abs/2407.21783}{Paper} & 
+Meta's open LLM, excellent for fine-tuning \\
+\hline
+
+\caption{Language Models}
+\end{longtable}
+
+\section{Speech Models}
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Model} & \textbf{Paper/Link} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Model} & \textbf{Paper/Link} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{Whisper v3} & 
+\href{https://github.com/openai/whisper}{OpenAI} | 
+\href{https://arxiv.org/abs/2212.04356}{Paper} & 
+SOTA speech recognition, multilingual \\
+\hline
+
+\textbf{Faster-Whisper} & 
+\href{https://github.com/guillaumekln/faster-whisper}{GitHub} & 
+CTranslate2 optimized Whisper (4x faster) \\
+\hline
+
+\textbf{HuBERT} & 
+\href{https://arxiv.org/abs/2106.07447}{Paper} | 
+\href{https://huggingface.co/facebook/hubert-large-ls960-ft}{HuggingFace} & 
+Self-supervised speech representation \\
+\hline
+
+\textbf{Piper TTS} & 
+\href{https://github.com/rhasspy/piper}{GitHub} & 
+Fast, offline VITS-based TTS \\
+\hline
+
+\textbf{Silero VAD} & 
+\href{https://github.com/snakers4/silero-vad}{GitHub} & 
+Voice Activity Detection \\
+\hline
+
+\caption{Speech Models}
+\end{longtable}
+
+\section{Fine-tuning Techniques}
+
+\begin{longtable}{|p{3cm}|p{4cm}|p{7cm}|}
+\hline
+\textbf{Technique} & \textbf{Paper} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Technique} & \textbf{Paper} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{LoRA} & 
+\href{https://arxiv.org/abs/2106.09685}{arXiv:2106.09685} & 
+Low-Rank Adaptation for efficient fine-tuning \\
+\hline
+
+\textbf{QLoRA} & 
+\href{https://arxiv.org/abs/2305.14314}{arXiv:2305.14314} & 
+Quantized LoRA, enables 65B models on single GPU \\
+\hline
+
+\textbf{PEFT} & 
+\href{https://github.com/huggingface/peft}{GitHub} & 
+HuggingFace Parameter-Efficient Fine-Tuning \\
+\hline
+
+\textbf{SFT} & 
+\href{https://huggingface.co/docs/trl/sft_trainer}{TRL Docs} & 
+Supervised Fine-Tuning Trainer \\
+\hline
+
+\caption{Fine-tuning Techniques}
+\end{longtable}
+
+\section{Datasets}
+
+\subsection{Grammar Error Correction (GEC)}
+
+\begin{longtable}{|p{3cm}|p{4cm}|p{2cm}|p{5cm}|}
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{BEA-2019} & 
+\href{https://www.cl.cam.ac.uk/research/nl/bea2019st/}{CodaLab} & 
+34K & Write \& Improve + LOCNESS shared task \\
+\hline
+
+\textbf{FCE Corpus} & 
+\href{https://ilexir.co.uk/datasets/index.html}{Cambridge} & 
+1,244 & First Certificate in English exam \\
+\hline
+
+\textbf{CoNLL-2014} & 
+\href{https://www.comp.nus.edu.sg/~nlp/conll14st.html}{NUS} & 
+1,312 & Grammatical Error Correction shared task \\
+\hline
+
+\textbf{JFLEG} & 
+\href{https://github.com/keisks/jfleg}{GitHub} & 
+1,501 & Fluency-focused GEC benchmark \\
+\hline
+
+\textbf{W\&I+LOCNESS} & 
+\href{https://huggingface.co/datasets/wi_locness}{HuggingFace} & 
+34K & Combined Write\&Improve + LOCNESS \\
+\hline
+
+\textbf{ERRANT} & 
+\href{https://github.com/chrisjbryant/errant}{GitHub} & 
+Tool & Error annotation toolkit \\
+\hline
+
+\caption{Grammar Error Correction Datasets}
+\end{longtable}
+
+\subsection{English Learner Corpora}
+
+\begin{longtable}{|p{3cm}|p{4cm}|p{2cm}|p{5cm}|}
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{EFCAMDAT} & 
+\href{https://corpus.mml.cam.ac.uk/efcamdat/}{EF-Cambridge} & 
+83M words & EF-Cambridge Open Language Database, CEFR-labeled \\
+\hline
+
+\textbf{TOEFL11} & 
+\href{https://www.ets.org/research/policy_research_reports/publications/report/2013/jngi.html}{ETS} & 
+12,100 & TOEFL essays with scores \\
+\hline
+
+\textbf{ICNALE} & 
+\href{https://language.sakura.ne.jp/icnale/}{Official} & 
+10K & International Corpus Network of Asian Learners \\
+\hline
+
+\textbf{PELIC} & 
+\href{https://github.com/ELI-Data-Mining-Group/PELIC-dataset}{GitHub} & 
+46K texts & Pitt English Language Institute Corpus \\
+\hline
+
+\caption{English Learner Corpora}
+\end{longtable}
+
+\subsection{CEFR \& Vocabulary}
+
+\begin{longtable}{|p{3.5cm}|p{5cm}|p{5.5cm}|}
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{CEFR-J Wordlist} & 
+\href{https://www.cefr-j.org/download.html}{Official} & 
+Japanese CEFR word frequency lists \\
+\hline
+
+\textbf{English Profile} & 
+\href{https://www.englishprofile.org/wordlists}{Cambridge} & 
+Official CEFR vocabulary lists \\
+\hline
+
+\textbf{Oxford 3000/5000} & 
+\href{https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000}{Oxford} & 
+Core vocabulary lists \\
+\hline
+
+\textbf{EVP} & 
+\href{https://www.englishprofile.org/wordlists/evp}{Cambridge} & 
+CEFR-graded vocabulary \\
+\hline
+
+\caption{CEFR \& Vocabulary Resources}
+\end{longtable}
+
+\subsection{Dialogue \& Conversation}
+
+\begin{longtable}{|p{3.5cm}|p{3.5cm}|p{1.8cm}|p{5.2cm}|}
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{Intel/orca\_dpo\_pairs} & 
+\href{https://huggingface.co/datasets/Intel/orca_dpo_pairs}{HuggingFace} & 
+13K & DPO training pairs \\
+\hline
+
+\textbf{Anthropic HH-RLHF} & 
+\href{https://huggingface.co/datasets/Anthropic/hh-rlhf}{HuggingFace} & 
+170K & Human preference data \\
+\hline
+
+\textbf{OpenAssistant} & 
+\href{https://huggingface.co/datasets/OpenAssistant/oasst1}{HuggingFace} & 
+161K & Multilingual conversation \\
+\hline
+
+\textbf{Tatoeba} & 
+\href{https://tatoeba.org/en/downloads}{Official} & 
+10M+ & Parallel sentences, good for translation \\
+\hline
+
+\caption{Dialogue \& Conversation Datasets}
+\end{longtable}
+
+\subsection{Pronunciation \& Speech}
+
+\begin{longtable}{|p{3cm}|p{4cm}|p{2.5cm}|p{4.5cm}|}
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Dataset} & \textbf{Link} & \textbf{Size} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{TIMIT} & 
+\href{https://catalog.ldc.upenn.edu/LDC93s1}{LDC} & 
+6,300 & Phoneme-aligned speech corpus \\
+\hline
+
+\textbf{LibriSpeech} & 
+\href{https://www.openslr.org/12/}{OpenSLR} & 
+1,000 hours & Clean speech for ASR \\
+\hline
+
+\textbf{CommonVoice} & 
+\href{https://commonvoice.mozilla.org/en/datasets}{Mozilla} & 
+17K+ hours & Multilingual speech corpus \\
+\hline
+
+\textbf{L2-ARCTIC} & 
+\href{https://psi.engr.tamu.edu/l2-arctic-corpus/}{GitHub} & 
+26 hours & Non-native English speech \\
+\hline
+
+\caption{Pronunciation \& Speech Datasets}
+\end{longtable}
+
+\section{Related Research Papers}
+
+\subsection{Grammar Error Correction}
+
+\begin{longtable}{|p{3cm}|c|p{4cm}|p{5.5cm}|}
+\hline
+\textbf{Paper} & \textbf{Year} & \textbf{Link} & \textbf{Key Contribution} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Paper} & \textbf{Year} & \textbf{Link} & \textbf{Key Contribution} \\
+\hline
+\endhead
+
+GECToR & 2020 & 
+\href{https://arxiv.org/abs/2005.12592}{arXiv:2005.12592} & 
+Efficient sequence tagging for GEC \\
+\hline
+
+T5 for GEC & 2021 & 
+\href{https://aclanthology.org/2021.bea-1.4/}{ACL} & 
+Transfer learning approach \\
+\hline
+
+GrammarT5 & 2022 & 
+\href{https://arxiv.org/abs/2203.07442}{arXiv:2203.07442} & 
+Grammar pre-training \\
+\hline
+
+LLM-GEC & 2023 & 
+\href{https://arxiv.org/abs/2303.13648}{arXiv:2303.13648} & 
+LLMs for GEC \\
+\hline
+
+\caption{Grammar Error Correction Papers}
+\end{longtable}
+
+\subsection{Language Assessment}
+
+\begin{longtable}{|p{3.5cm}|c|p{4cm}|p{5cm}|}
+\hline
+\textbf{Paper} & \textbf{Year} & \textbf{Link} & \textbf{Key Contribution} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Paper} & \textbf{Year} & \textbf{Link} & \textbf{Key Contribution} \\
+\hline
+\endhead
+
+CEFR Classification & 2018 & 
+\href{https://aclanthology.org/W18-3701/}{ACL} & 
+Automatic CEFR level prediction \\
+\hline
+
+Automated Essay Scoring & 2020 & 
+\href{https://arxiv.org/abs/2012.13958}{arXiv:2012.13958} & 
+BERT for essay scoring \\
+\hline
+
+Fluency Assessment & 2021 & 
+\href{https://www.isca-speech.org/archive/interspeech_2021/}{Interspeech} & 
+Speech fluency metrics \\
+\hline
+
+\caption{Language Assessment Papers}
+\end{longtable}
+
+\subsection{Multi-task Learning}
+
+\begin{longtable}{|p{3.5cm}|c|p{4cm}|p{5cm}|}
+\hline
+\textbf{Paper} & \textbf{Year} & \textbf{Link} & \textbf{Key Contribution} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Paper} & \textbf{Year} & \textbf{Link} & \textbf{Key Contribution} \\
+\hline
+\endhead
+
+MT-DNN & 2019 & 
+\href{https://arxiv.org/abs/1901.11504}{arXiv:1901.11504} & 
+Multi-Task Deep Neural Networks \\
+\hline
+
+UniLM & 2020 & 
+\href{https://proceedings.neurips.cc/paper/2020}{NeurIPS} & 
+Unified Language Model pre-training \\
+\hline
+
+T5 & 2020 & 
+\href{https://arxiv.org/abs/1910.10683}{arXiv:1910.10683} & 
+Text-to-Text Transfer Transformer \\
+\hline
+
+\caption{Multi-task Learning Papers}
+\end{longtable}
+
+\section{Tools \& Libraries}
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Tool} & \textbf{Link} & \textbf{Purpose} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Tool} & \textbf{Link} & \textbf{Purpose} \\
+\hline
+\endhead
+
+\textbf{Transformers} & 
+\href{https://github.com/huggingface/transformers}{HuggingFace} & 
+Model loading \& inference \\
+\hline
+
+\textbf{PEFT} & 
+\href{https://github.com/huggingface/peft}{HuggingFace} & 
+Parameter-efficient fine-tuning \\
+\hline
+
+\textbf{TRL} & 
+\href{https://github.com/huggingface/trl}{HuggingFace} & 
+Transformer Reinforcement Learning \\
+\hline
+
+\textbf{BitsAndBytes} & 
+\href{https://github.com/TimDettmers/bitsandbytes}{GitHub} & 
+8-bit/4-bit quantization \\
+\hline
+
+\textbf{vLLM} & 
+\href{https://github.com/vllm-project/vllm}{GitHub} & 
+High-throughput LLM serving \\
+\hline
+
+\textbf{ERRANT} & 
+\href{https://github.com/chrisjbryant/errant}{GitHub} & 
+Error annotation toolkit \\
+\hline
+
+\textbf{Language Tool} & 
+\href{https://github.com/languagetool-org/languagetool}{GitHub} & 
+Rule-based grammar checking \\
+\hline
+
+\textbf{Sentence-Transformers} & 
+\href{https://github.com/UKPLab/sentence-transformers}{GitHub} & 
+Sentence embeddings \\
+\hline
+
+\caption{Development Tools \& Libraries}
+\end{longtable}
+
+\section{Vietnamese NLP Resources}
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Resource} & \textbf{Link} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Resource} & \textbf{Link} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{VinAI PhoGPT} & 
+\href{https://github.com/VinAIResearch/PhoGPT}{GitHub} & 
+Vietnamese generative model \\
+\hline
+
+\textbf{VietAI ViT5} & 
+\href{https://huggingface.co/VietAI/vit5-base}{HuggingFace} & 
+Vietnamese T5 \\
+\hline
+
+\textbf{UIT-ViNewsQA} & 
+\href{https://github.com/xmen-ai/Vietnamese-QA}{GitHub} & 
+Vietnamese QA dataset \\
+\hline
+
+\textbf{VLSP} & 
+\href{https://vlsp.org.vn/}{Official} & 
+Vietnamese Language and Speech Processing \\
+\hline
+
+\caption{Vietnamese NLP Resources}
+\end{longtable}
+
+\section{Mobile Deployment}
+
+\begin{longtable}{|p{4cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Resource} & \textbf{Link} & \textbf{Description} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Resource} & \textbf{Link} & \textbf{Description} \\
+\hline
+\endhead
+
+\textbf{ONNX Runtime} & 
+\href{https://github.com/microsoft/onnxruntime}{GitHub} & 
+Cross-platform inference \\
+\hline
+
+\textbf{TensorFlow Lite} & 
+\href{https://www.tensorflow.org/lite}{TensorFlow} & 
+Mobile deployment \\
+\hline
+
+\textbf{llama.cpp} & 
+\href{https://github.com/ggerganov/llama.cpp}{GitHub} & 
+CPU inference for LLMs \\
+\hline
+
+\textbf{whisper.cpp} & 
+\href{https://github.com/ggerganov/whisper.cpp}{GitHub} & 
+CPU inference for Whisper \\
+\hline
+
+\textbf{MLC LLM} & 
+\href{https://github.com/mlc-ai/mlc-llm}{GitHub} & 
+Universal LLM deployment \\
+\hline
+
+\caption{Mobile Deployment Resources}
+\end{longtable}
+
+\vfill
+
+\begin{center}
+\rule{0.8\textwidth}{0.4pt}\\[0.3cm]
+\large\textit{LexiLingo AI - Tài Liệu Tham Khảo}\\
+\small Version 1.1 | January 2026\\
+\textbf{Nguyen Huu Thang}
+\end{center}
+
+\end{document}

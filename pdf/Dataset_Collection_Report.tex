@@ -1,0 +1,357 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{\setmainfont{TeX Gyre Termes}}
+\IfFontExistsTF{Menlo}{\setmonofont{Menlo}}{\setmonofont{Latin Modern Mono}}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{LexiLingo}}
+\fancyhead[R]{Báo cáo dữ liệu huấn luyện}
+\fancyfoot[C]{\thepage}
+
+\definecolor{primaryblue}{RGB}{66,133,244}
+\definecolor{secondarygreen}{RGB}{52,168,83}
+\definecolor{darkgray}{RGB}{95,99,104}
+\definecolor{lightgray}{RGB}{241,243,244}
+
+\titleformat{\section}{\Large\bfseries\color{primaryblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{darkgray}}{\thesubsection}{1em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=secondarygreen,
+    citecolor=primaryblue
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.8cm}
+
+    {\Huge\bfseries\color{primaryblue} LexiLingo\\[0.4cm]}
+    {\LARGE\color{darkgray} Báo Cáo Nguồn Dữ Liệu Và Cách Thu Thập\\[0.4cm]}
+    {\large Dataset Sources and Collection Workflow\\[1.6cm]}
+
+    \includegraphics[width=4.2cm]{logo.png}\\[1.2cm]
+
+    \begin{tabular}{ll}
+        \textbf{Phiên bản:} & v1.0 \\
+        \textbf{Ngày cập nhật:} & 09/03/2026 \\
+        \textbf{Phạm vi:} & DL-Model-Support \\
+        \textbf{Mục tiêu:} & Mô tả nguồn dữ liệu, quy trình thu thập, chuẩn hóa \\
+    \end{tabular}
+
+    \vfill
+
+    {\large\color{darkgray} Nguyen Huu Thang}\\
+    {\large\color{darkgray} LexiLingo AI Project}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Mục tiêu tài liệu}
+
+Tài liệu này mô tả các nguồn dữ liệu đang được sử dụng trong pipeline huấn luyện của LexiLingo, cách dữ liệu được thu thập từ nguồn gốc, cách chuyển đổi về định dạng chung và các bước kiểm soát chất lượng trước khi đưa vào fine-tuning. Nội dung bám theo các artefact hiện có trong repo, đặc biệt là các file cấu hình và script xử lý dataset.
+
+Trong phạm vi thư mục \texttt{DL-Model-Support}, các dữ liệu được đề cập ở đây là \textbf{dữ liệu huấn luyện cho mô hình} hoặc dữ liệu phục vụ đánh giá mô hình sau huấn luyện. Chúng không phải là dữ liệu người dùng cuối, dữ liệu giao dịch hay dữ liệu vận hành của toàn bộ hệ thống LexiLingo.
+
+\section{Tổng quan bộ dữ liệu}
+
+Pipeline hiện tại tổ chức dữ liệu thành 5 nhóm tác vụ chính:
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Fluency}: chấm độ trôi chảy của câu hoặc đoạn văn.
+    \item \textbf{Grammar}: sửa lỗi ngữ pháp và tạo câu đúng.
+    \item \textbf{Vocabulary}: phân loại mức CEFR của từ vựng hoặc văn bản.
+    \item \textbf{Dialogue}: tạo phản hồi hội thoại theo vai trò AI tutor.
+    \item \textbf{Explanation}: giải thích lỗi ngữ pháp bằng tiếng Việt theo phong cách giáo viên.
+\end{enumerate}
+
+Mỗi nhóm dữ liệu tương ứng với một mục tiêu học máy cụ thể trong quá trình fine-tune adapter hoặc mô hình hỗ trợ, ví dụ như chấm fluency, sửa grammar, phân loại mức từ vựng CEFR, sinh phản hồi dialogue và giải thích lỗi bằng tiếng Việt. Nói ngắn gọn, đây là \textbf{training datasets cho mô hình}, không phải tập dữ liệu nghiệp vụ của ứng dụng.
+
+Sau khi hợp nhất thêm task explanation, tập dữ liệu hiện tại có quy mô như sau:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+\textbf{Tập dữ liệu} & \textbf{Số mẫu} & \textbf{Nguồn thống kê} \\
+\midrule
+Train trước khi merge explanation & 26,880 & \texttt{merge\_explanation\_report.json} \\
+Validation trước khi merge explanation & 1,412 & \texttt{merge\_explanation\_report.json} \\
+Explanation đã lọc chất lượng & 4,132 & \texttt{merge\_explanation\_report.json} \\
+Train sau merge explanation & 30,806 & \texttt{merge\_explanation\_report.json} \\
+Validation sau merge explanation & 1,618 & \texttt{merge\_explanation\_report.json} \\
+\bottomrule
+\end{tabular}
+\caption{Quy mô dữ liệu hợp nhất hiện tại}
+\end{table}
+
+\section{Nguồn dữ liệu theo từng tác vụ}
+
+\subsection{Fluency}
+
+Task fluency được xây dựng từ nhiều nguồn khác nhau để phủ cả câu ngắn, câu đúng ngữ pháp, văn bản học viên và đoạn văn tự nhiên.
+
+\begin{longtable}{p{3.2cm}p{4.3cm}p{7cm}}
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endhead
+CoLA & Câu có nhãn grammatical / ungrammatical & Ánh xạ nhãn chấp nhận cú pháp sang thang điểm fluency, đồng thời sinh reasoning ngắn cho từng mẫu. \\
+SST-2 & Câu tiếng Anh đã được viết tự nhiên & Dùng như nguồn câu tương đối trôi chảy, gán điểm fluency cao vì ngôn ngữ đầu vào đã chuẩn hoá tốt. \\
+wi\_locness local & Câu của người học tiếng Anh trong định dạng M2 & Đếm số lỗi trong câu học viên để suy ra mức fluency thấp hơn, giúp bổ sung ví dụ learner text. \\
+WikiText & Đoạn văn tiếng Anh tự nhiên & Lấy đoạn ngữ cảnh từ văn bản dài, kiểm tra tỷ lệ non-ASCII và chiều dài tối thiểu trước khi gán nhãn heuristic. \\
+Synthetic fallback & Câu sinh theo mẫu & Chỉ dùng khi chưa đủ target sample, nhằm lấp thiếu số lượng nhưng vẫn giữ format thống nhất. \\
+\bottomrule
+\caption{Nguồn dữ liệu cho task fluency}
+\end{longtable}
+
+\textbf{Cách thu thập và gán nhãn:}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Dùng thư viện Hugging Face \texttt{load\_dataset()} để tải CoLA, SST-2 và WikiText.
+    \item Với CoLA, nhãn \texttt{label=1} được đổi sang khoảng điểm fluency cao, còn \texttt{label=0} được đổi sang khoảng điểm thấp hơn.
+    \item Với learner text từ wi\_locness, script đọc file M2 cục bộ và ước lượng điểm fluency dựa trên số edit lỗi trong câu.
+    \item Với WikiText, script tách câu, lấy một cửa sổ ngữ cảnh ngẫu nhiên và gán lý do theo hướng ``real-world text snippet; generally fluent''.
+\end{itemize}
+
+\subsection{Grammar}
+
+Task grammar tập trung vào sửa lỗi văn bản của người học, kết hợp dữ liệu thực và dữ liệu tăng cường tự động.
+
+\begin{longtable}{p{3.2cm}p{4.3cm}p{7cm}}
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endhead
+wi\_locness local & Learner corpus ở dạng M2 & Là nguồn chính trong triển khai hiện tại. Script đọc các dòng \texttt{S} và \texttt{A}, áp dụng toàn bộ edit để sinh câu corrected hoàn chỉnh. \\
+WikiText + synthetic error injection & Văn bản tự nhiên + lỗi nhân tạo & Sinh câu sai bằng cách cố ý bỏ mạo từ, thay giới từ, gây lỗi subject-verb agreement, tense hoặc plural để tạo cặp sai / đúng. \\
+CoNLL-2014, FCE & Nguồn tham chiếu kiến trúc & Có mặt trong mô tả kiến trúc dự án, nhưng phần gọi trực tiếp từ script hiện tại đã bị vô hiệu vì dataset script cũ không còn tương thích. \\
+\bottomrule
+\caption{Nguồn dữ liệu cho task grammar}
+\end{longtable}
+
+\textbf{Cách thu thập và xử lý:}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Dữ liệu wi\_locness được lấy từ thư mục cục bộ \texttt{datasets/wi+locness/m2}.
+    \item Hàm \texttt{apply\_m2\_edits()} áp dụng toàn bộ sửa lỗi lên câu gốc để tránh lỗi chỉ thay fragment rời rạc.
+    \item Nếu số lượng chưa đạt target, pipeline lấy đoạn văn từ WikiText rồi chèn lỗi nhân tạo theo từng nhóm lỗi phổ biến.
+    \item Kết quả đầu ra lưu dưới dạng cặp \texttt{input} câu sai và \texttt{output.corrected} câu đúng, kèm \texttt{metadata.source} để truy vết nguồn gốc.
+\end{itemize}
+
+\subsection{Vocabulary}
+
+Task vocabulary dùng dữ liệu văn bản theo nhiều mức độ phức tạp khác nhau để phân lớp CEFR ở mức A2, B1, B2.
+
+\begin{longtable}{p{3.4cm}p{4.1cm}p{7cm}}
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endhead
+Simple Wikipedia & Văn bản simple English & Nguồn ưu tiên cho câu và đoạn dễ đọc, phù hợp các mức A2-B1. \\
+SNLI & Premise câu tự nhiên & Bổ sung các câu ngắn, mô tả tự nhiên để ước lượng độ khó từ vựng theo heuristic. \\
+AG News & Tin tức tiếng Anh & Tăng tỷ lệ mẫu có từ vựng trung cấp và học thuật nhẹ, thường được gán B1-B2. \\
+WikiText fallback & Văn bản dài, đa chủ đề & Dùng khi không tải được Simple Wikipedia hoặc cần tăng độ phủ văn bản thực. \\
+Synthetic templates & Câu mẫu sinh tự động & Lấp thiếu target cuối cùng bằng template có kiểm soát độ khó A2, B1, B2. \\
+\bottomrule
+\caption{Nguồn dữ liệu cho task vocabulary}
+\end{longtable}
+
+\textbf{Cách gán nhãn:}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Pipeline không dùng nhãn CEFR gốc cho mọi nguồn mà ước lượng mức độ bằng hàm \texttt{estimate\_vocab\_level()}.
+    \item Heuristic hiện tại dựa trên độ dài từ trung bình và tỷ lệ từ dài trong câu hoặc đoạn.
+    \item Sau khi chọn đoạn ngữ cảnh đủ dài, script gán nhãn \texttt{A2/B1/B2} và lưu thêm mô tả \texttt{key\_words} để giải thích lý do gán nhãn.
+\end{itemize}
+
+\subsection{Dialogue}
+
+Task dialogue phục vụ vai trò AI tutor và phản hồi hội thoại, được xây dựng từ tập instruction-following và hội thoại thực.
+
+\begin{longtable}{p{3.4cm}p{4.1cm}p{7cm}}
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endhead
+OpenOrca & Instruction-following Q\&A & Lấy question / response, lọc translation prompt và loại mẫu nhiều non-ASCII, sau đó gắn metadata learner context vào input. \\
+Dialogsum & Hội thoại và tóm tắt hội thoại & Lấy turn đầu làm student input, dùng summary làm target response ngắn gọn. \\
+Anthropic HH-RLHF & Human-assistant conversation & Tách \texttt{Human} và \texttt{Assistant} từ cặp \texttt{chosen}, dùng làm hội thoại hướng dẫn an toàn và hữu ích. \\
+Synthetic fallback & Câu hỏi đáp mẫu cho người học ESL & Chỉ dùng khi thiếu số lượng, tập trung vào phản hồi thân thiện, sửa lỗi cơ bản và khuyến khích người học. \\
+\bottomrule
+\caption{Nguồn dữ liệu cho task dialogue}
+\end{longtable}
+
+\textbf{Cách thu thập và biến đổi:}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Script loại bỏ các prompt thiên về dịch thuật hoặc có tỷ lệ ký tự non-ASCII quá cao để giữ tiếng Anh là ngôn ngữ chính.
+    \item Input cuối cùng được mở rộng bằng các tín hiệu phụ như \texttt{fluency}, \texttt{level}, \texttt{errors} để mô phỏng trạng thái của người học.
+    \item Với Dialogsum, phần hội thoại đầy đủ được giữ trong \texttt{metadata.raw\_text}; target dùng bản tóm tắt làm phản hồi gọn.
+    \item Với Anthropic HH, đoạn hội thoại được parse từ format \texttt{Human / Assistant} trước khi đưa về schema chung.
+\end{itemize}
+
+\subsection{Explanation bằng tiếng Việt}
+
+Task explanation là nhánh dữ liệu chuyên biệt nhằm giúp model giải thích lỗi ngữ pháp cho người học Việt Nam.
+
+\begin{longtable}{p{3.5cm}p{4cm}p{7cm}}
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn} & \textbf{Loại dữ liệu} & \textbf{Cách dùng trong pipeline} \\
+\midrule
+\endhead
+\texttt{vietnamese\_explanations.json} & Cặp lỗi ngữ pháp và lời giải thích tiếng Việt & Là nguồn duy nhất cho task explanation. Dữ liệu được lọc theo \texttt{quality\_score}, chuyển sang format messages-based rồi merge vào train / val hiện có. \\
+\bottomrule
+\caption{Nguồn dữ liệu cho task explanation}
+\end{longtable}
+
+\textbf{Quy trình thu thập và hợp nhất:}
+\begin{itemize}[leftmargin=1.2cm]
+    \item Đầu vào là file JSON mảng, mỗi phần tử chứa \texttt{input}, \texttt{output}, \texttt{error\_type}, \texttt{quality\_score}.
+    \item Script \texttt{merge\_explanation\_data.py} lọc theo ngưỡng chất lượng \texttt{quality\_score >= 50}.
+    \item Dữ liệu sau lọc được chuyển sang schema hội thoại hai lượt: user nêu lỗi, assistant trả lời bằng giải thích tiếng Việt.
+    \item Tỷ lệ chia validation cho riêng explanation là 5\%, sau đó được cộng vào train / val chung của toàn hệ.
+\end{itemize}
+
+\section{Quy trình thu thập và chuẩn hoá}
+
+\subsection{Bước 1: Nạp dữ liệu từ nguồn ngoài và nguồn cục bộ}
+
+Có hai nhóm nguồn chính:
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Nguồn ngoài}: tải bằng Hugging Face Datasets như CoLA, SST-2, WikiText, SNLI, AG News, OpenOrca, Dialogsum, Anthropic HH-RLHF.
+    \item \textbf{Nguồn cục bộ}: wi\_locness M2 và bộ \texttt{vietnamese\_explanations.json} do nhóm dự án quản lý trong repo.
+\end{itemize}
+
+\subsection{Bước 2: Chuẩn hoá văn bản}
+
+Trước khi tạo sample huấn luyện, pipeline chuẩn hoá dữ liệu bằng các thao tác chính:
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item loại bỏ khoảng trắng dư và chuẩn hóa text;
+    \item kiểm tra độ dài tối thiểu của input;
+    \item kiểm soát tỷ lệ ký tự non-ASCII để giữ chất lượng tiếng Anh;
+    \item tách câu và chọn một đoạn ngữ cảnh phù hợp khi nguồn là văn bản dài;
+    \item giữ lại \texttt{raw\_text} trong metadata để phục vụ truy vết.
+\end{enumerate}
+
+\subsection{Bước 3: Gán nhãn hoặc suy diễn nhãn}
+
+Không phải mọi nguồn đều có nhãn sẵn đúng với bài toán của LexiLingo, vì vậy pipeline dùng ba hình thức:
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Direct label mapping}: ví dụ CoLA sang fluency.
+    \item \textbf{Rule-based inference}: ví dụ ước lượng CEFR cho vocabulary hoặc suy fluency theo số lỗi của learner text.
+    \item \textbf{Synthetic augmentation}: sinh lỗi nhân tạo hoặc sinh câu mẫu khi cần đạt đủ target sample.
+\end{itemize}
+
+\subsection{Bước 4: Khử trùng lặp và đóng gói schema chung}
+
+Mỗi mẫu dữ liệu sau cùng được đưa về cấu trúc thống nhất gồm:
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \texttt{task}: tên bài toán;
+    \item \texttt{input}: dữ liệu đầu vào cho model;
+    \item \texttt{output}: nhãn hoặc phản hồi đích;
+    \item \texttt{metadata}: nguồn, chỉ mục, raw text, loại lỗi hoặc thông tin phụ trợ.
+\end{itemize}
+
+Pipeline dùng khoá băm ổn định trên \texttt{task + normalized input} để loại bỏ trùng lặp trong cùng tác vụ, đồng thời vẫn giữ được khả năng truy nguyên nguồn dữ liệu.
+
+\section{Kiểm soát chất lượng dữ liệu}
+
+Các cơ chế kiểm soát chất lượng chính gồm:
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Length filtering}: loại các mẫu quá ngắn hoặc thiếu nội dung.
+    \item \textbf{Language filtering}: loại các mẫu có tỷ lệ ký tự non-ASCII quá cao hoặc nghi ngờ không phải tiếng Anh.
+    \item \textbf{Deduplication}: tránh trùng lặp theo input sau chuẩn hoá.
+    \item \textbf{Metadata retention}: lưu nguồn gốc để kiểm tra lại khi mô hình sinh lỗi bất thường.
+    \item \textbf{Quality threshold}: riêng tập explanation chỉ lấy mẫu có \texttt{quality\_score >= 50}.
+\end{enumerate}
+
+\section{Phân bố dữ liệu hiện tại sau hợp nhất explanation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+\textbf{Task} & \textbf{Train} & \textbf{Validation} \\
+\midrule
+fluency & 7,255 & 381 \\
+vocabulary & 7,095 & 373 \\
+grammar & 5,881 & 309 \\
+dialogue & 6,649 & 349 \\
+explanation & 3,926 & 206 \\
+\bottomrule
+\end{tabular}
+\caption{Phân bố task sau khi merge explanation}
+\end{table}
+
+Nhìn từ thống kê hiện tại, dataset không chỉ là tập hợp dữ liệu thuần gốc từ các corpus chuẩn, mà là một \textbf{pipeline dữ liệu lai} gồm nguồn chuẩn học thuật, nguồn hội thoại instruction-following, dữ liệu cục bộ dành cho người học và dữ liệu tăng cường theo luật. Cách tiếp cận này phù hợp với mục tiêu huấn luyện đa tác vụ nhưng cần được ghi nhận rõ trong mọi báo cáo đánh giá mô hình.
+
+\section{Nhận xét và khuyến nghị}
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Nên phân biệt rõ trong tài liệu nội bộ giữa \textbf{nguồn gốc ban đầu} và \textbf{nguồn thực tế đang dùng trong script hiện tại}, vì phần kiến trúc và phần code đã có chỗ khác nhau.
+    \item Với task vocabulary và fluency, cần lưu ý rằng một phần nhãn được suy diễn heuristic, không phải human annotation trực tiếp.
+    \item Với task grammar, wi\_locness hiện là nguồn learner corpus thực quan trọng nhất trong repo; nếu cần tăng độ tin cậy nên bổ sung lại CoNLL hoặc FCE bằng quy trình tải tương thích mới.
+    \item Với task dialogue, nên tiếp tục lọc domain để tăng tính sư phạm, vì OpenOrca và Dialogsum chứa nhiều mẫu tổng quát chưa phải hội thoại ESL thuần túy.
+    \item Task explanation là thành phần có giá trị đặc thù cho người học Việt Nam, nên ưu tiên mở rộng bằng human review thay vì chỉ tăng số lượng.
+\end{enumerate}
+
+\section{Kết luận}
+
+Hệ dữ liệu của LexiLingo được xây dựng theo hướng thực dụng và đa nguồn: kết hợp corpus chuẩn, learner corpus, instruction dataset, hội thoại tổng quát và tập giải thích tiếng Việt do dự án phát triển. Toàn bộ các tập được mô tả trong tài liệu này đều nhằm phục vụ \textbf{huấn luyện hoặc đánh giá mô hình AI} trong project. Quy trình thu thập hiện tại không chỉ tải dữ liệu, mà còn bao gồm chuẩn hoá, suy diễn nhãn, tăng cường dữ liệu, khử trùng lặp và hợp nhất về schema chung. Đây là nền tảng phù hợp cho fine-tuning đa nhiệm, đồng thời cũng đặt ra yêu cầu phải công khai rõ mức độ synthetic và heuristic trong từng tác vụ khi báo cáo kết quả mô hình.
+
+\section*{Tài liệu tham chiếu nội bộ}
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \texttt{scripts/download\_and\_inspect\_datasets.py}
+    \item \texttt{scripts/merge\_explanation\_data.py}
+    \item \texttt{datasets/datasets/unified\_training\_data.json}
+    \item \texttt{datasets/datasets/merge\_explanation\_report.json}
+    \item \texttt{docs/EXPLANATION\_TASK.md}
+    \item \texttt{architecture.md}
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,187 @@
+# LLM Configuration for LexiLingo
+# Hybrid: Qwen2.5-0.5B (Grammar) + SmolLM2-360M (Conversation)
+
+# =============================================================================
+# QWEN2.5-0.5B Configuration (Primary - Grammar & Vocabulary)
+# =============================================================================
+qwen:
+  model_name: "Qwen/Qwen2.5-0.5B-Instruct"
+  task: "grammar_vocabulary"
+  
+  # LoRA Configuration
+  lora:
+    r: 16
+    lora_alpha: 32
+    lora_dropout: 0.1
+    target_modules:
+      - "q_proj"
+      - "k_proj"
+      - "v_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+    task_type: "CAUSAL_LM"
+    bias: "none"
+  
+  # Training Configuration
+  training:
+    output_dir: "./models/qwen2.5-0.5b-english-tutor"
+    num_train_epochs: 3
+    per_device_train_batch_size: 4
+    per_device_eval_batch_size: 4
+    gradient_accumulation_steps: 4
+    learning_rate: 2.0e-4
+    weight_decay: 0.01
+    warmup_ratio: 0.03
+    lr_scheduler_type: "cosine"
+    logging_steps: 10
+    save_steps: 100
+    eval_steps: 100
+    save_total_limit: 3
+    fp16: true
+    optim: "paged_adamw_32bit"
+    max_grad_norm: 0.3
+    max_seq_length: 512
+    gradient_checkpointing: true
+  
+  # Quantization for Export
+  quantization:
+    load_in_4bit: true
+    bnb_4bit_quant_type: "nf4"
+    bnb_4bit_compute_dtype: "float16"
+    bnb_4bit_use_double_quant: true
+  
+  # Prompt Templates
+  prompts:
+    grammar_correction: |
+      <|im_start|>system
+      You are an English grammar tutor. Correct the sentence and explain the error briefly.
+      <|im_end|>
+      <|im_start|>user
+      {input}
+      <|im_end|>
+      <|im_start|>assistant
+    
+    vocabulary_explain: |
+      <|im_start|>system
+      You are an English vocabulary tutor. Explain the word simply with examples.
+      <|im_end|>
+      <|im_start|>user
+      Explain the word: {word}
+      <|im_end|>
+      <|im_start|>assistant
+
+# =============================================================================
+# SMOLM2-360M Configuration (Secondary - Quick Conversation)
+# =============================================================================
+smolm:
+  model_name: "HuggingFaceTB/SmolLM2-360M-Instruct"
+  task: "conversation"
+  
+  # LoRA Configuration (lighter for smaller model)
+  lora:
+    r: 8
+    lora_alpha: 16
+    lora_dropout: 0.1
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+    task_type: "CAUSAL_LM"
+    bias: "none"
+  
+  # Training Configuration
+  training:
+    output_dir: "./models/smolm-360m-conversation"
+    num_train_epochs: 5
+    per_device_train_batch_size: 8
+    per_device_eval_batch_size: 8
+    gradient_accumulation_steps: 2
+    learning_rate: 3.0e-4
+    weight_decay: 0.01
+    warmup_ratio: 0.03
+    lr_scheduler_type: "cosine"
+    logging_steps: 10
+    save_steps: 200
+    eval_steps: 200
+    save_total_limit: 3
+    fp16: true
+    optim: "adamw_torch"
+    max_seq_length: 256
+    gradient_checkpointing: false  # Small model, not needed
+  
+  # Prompt Templates
+  prompts:
+    conversation: |
+      <|im_start|>system
+      You are a friendly English conversation partner. Keep responses short and encouraging.
+      <|im_end|>
+      <|im_start|>user
+      {input}
+      <|im_end|>
+      <|im_start|>assistant
+    
+    quick_qa: |
+      <|im_start|>system
+      Answer briefly in simple English.
+      <|im_end|>
+      <|im_start|>user
+      {question}
+      <|im_end|>
+      <|im_start|>assistant
+
+# =============================================================================
+# Hybrid Router Configuration
+# =============================================================================
+router:
+  # Task classification thresholds
+  complexity_thresholds:
+    simple: 3      # Use SmolLM
+    medium: 7      # Use Qwen
+    complex: 10    # Use Cloud API
+  
+  # Keywords for task routing
+  task_keywords:
+    grammar:
+      - "correct"
+      - "grammar"
+      - "mistake"
+      - "error"
+      - "fix"
+      - "wrong"
+    vocabulary:
+      - "mean"
+      - "definition"
+      - "explain"
+      - "word"
+      - "vocabulary"
+    conversation:
+      - "hello"
+      - "hi"
+      - "how are you"
+      - "chat"
+      - "talk"
+  
+  # Fallback configuration
+  fallback:
+    enabled: true
+    cloud_api: "gemini"
+    timeout_ms: 5000
+
+# =============================================================================
+# Export Configuration
+# =============================================================================
+export:
+  gguf:
+    quantization_types:
+      - "Q4_K_M"   # Recommended for mobile
+      - "Q8_0"     # Higher quality
+    output_dir: "./models/exported/gguf"
+  
+  coreml:
+    compute_units: "ALL"  # CPU + GPU + Neural Engine
+    output_dir: "./models/exported/coreml"
+  
+  onnx:
+    opset_version: 17
+    output_dir: "./models/exported/onnx"
